@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>H-Tree</title>
+    <style>
+    	#myCanvas {
+		/*   border-width: 3x;
+		  border-style: solid;
+		  border-color: #0FA3C2; */
+		  border: 3px solid #0FA3C2;
+		}
+    </style>
+  </head>
+  <body>
+    <h1>H-Tree Solution</h1>
+    <canvas id="myCanvas" width="1000" height="1000">Canvas is not supported on this browser</canvas>
+	<button id="myButton">Draw H-Tree</button>
+
+	<script>
+		//# sourceURL=dynamicScript.js 
+		function drawLine(start, end) {
+		  var canvas = document.getElementById("myCanvas");
+		  var context = canvas.getContext("2d");
+		  context.moveTo(start.x, start.y);
+		  context.lineTo(end.x, end.y);
+		  context.stroke();
+		}
+
+		function drawHTree(center, length, depth) {
+		  if(depth > 0) {
+		    var halfLength = length/Math.sqrt(2);
+		    var bottomLeft = {x:center.x - halfLength, y:center.y - halfLength};
+		    var topLeft = {x:center.x - halfLength , y:center.y + halfLength};
+		    var bottomRight = {x:center.x + halfLength ,  y:center.y - halfLength};
+		    var topRight = {x:center.x + halfLength ,  y:center.y + halfLength};
+		    
+		    // Left side
+		    drawLine(bottomLeft, topLeft);
+		    // Middle
+		    drawLine({x: bottomLeft.x, y:center.y}, {x:bottomRight.x, y:center.y});
+		    // Right side
+		    drawLine(bottomRight, topRight);
+		    
+		    var newLength = halfLength/Math.sqrt(2);
+		    drawHTree(bottomLeft, newLength, depth - 1);
+		    drawHTree(topLeft, newLength, depth - 1);
+		    drawHTree(bottomRight, newLength, depth - 1);
+		    drawHTree(topRight, newLength, depth - 1);
+		  }
+		}
+
+		var button = document.getElementById("myButton");
+		button.addEventListener("click", function(){
+		 drawHTree({x:500, y:500}, 350, 5);
+		 // drawLine({x:10, y:10}, {x:100, y:100});
+		});
+	</script>
+  </body>
+</html>

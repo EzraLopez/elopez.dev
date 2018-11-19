@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<!-- Simon Says 1.1 -->
+<!-- By Esdras Lopez -->
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=350">
+
+	<title>Simon Says</title>
+	<link rel="stylesheet" type="text/css" href="styles.css">
+	<script src="simonsays.js">
+	</script>
+</head>
+
+<body>
+	<!-- Preload sounds -->
+	<audio id="audio1">
+			<source src="audio/beep1.wav" type="audio/wav" preload="auto">
+		</audio>
+	<audio id="audio2">
+			<source src="audio/beep2.wav" type="audio/wav" preload="auto">
+		</audio>
+	<audio id="audio3">
+			<source src="audio/beep3.wav" type="audio/wav" preload="auto">
+		</audio>
+	<audio id="audio4">
+			<source src="audio/beep4.wav" type="audio/wav" preload="auto">
+		</audio>
+	<audio id="buzzer">
+			<source src="audio/buzzer.wav" type="audio/wav" preload="auto">
+		</audio>
+	<audio id="lose">
+			<source src="audio/lose.wav" type="audio/wav" preload="auto">
+		</audio>
+	<!-- <img src = "game.png" alt = "game" style = "position:absolute; left:370px; width:600px; height:465px;">	-->
+	<h1 class="title">Simon Says</h1>
+	<table id="highscorestable" class="content">
+		<tr>
+			<th colspan="3">
+				<h3>H I G H&nbsp;&nbsp;&nbsp;&nbsp;S C O R E S</h3></th>
+		</tr>
+		<tr style="background-color:lightblue; color:black; font-weight:bold">
+			<td width="10%" border="0" style="border:none; background-color:black"></td>
+			<td width="60%">Name</td>
+			<td width="30%">Score</td>
+		</tr>
+		<tr>
+			<td>1.</td>
+			<td id="name1"></td>
+			<td id="score1"></td>
+		</tr>
+		<tr>
+			<td>2.</td>
+			<td id="name2"></td>
+			<td id="score2"></td>
+		</tr>
+		<tr>
+			<td>3.</td>
+			<td id="name3"></td>
+			<td id="score3"></td>
+		</tr>
+		<tr>
+			<td>4.</td>
+			<td id="name4"></td>
+			<td id="score4"></td>
+		</tr>
+		<tr>
+			<td>5.</td>
+			<td id="name5"></td>
+			<td id="score5"></td>
+		</tr>
+		<tr>
+			<th colspan="3">
+				<button id="closehighscores" class="modern2" style="display:inline; position:absolute; left:120px; top:285px; width:75px; height:35px; z-index:1;">Close</button>
+				<button id="resethighscoresbutton" class="modern2" style="display:inline; position:absolute; left:25px; top:285px; width:75px; height:35px; z-index:1">Reset</button>
+				<img src="img/scores.jpg" alt="firstplaces" style="float:right; width:80px; height:80px"></th>
+		</tr>
+	</table>
+	<div id="about" class="popup">
+		<img id="logo" src="img/logo.png" alt="Simon Says Logo" style="position:absolute; top:16px; left:30px; width:25px; height:25px; display:none"><b>SIMON SAYS<br>
+			Version 1.1</b><br><br> Simon Says<br> Copyright &copy; 2013-2016<br> Esdras Lopez<br> All rights reserved.
+	</div>
+	<img id="close" src="img/close.png" style="position:absolute; top:130px; left:260px; width:25px; height:25px; display:none">
+	<div>
+		<canvas id="myCanvas" width="340" height="460">
+		</div>
+		<p id = "turnInfo" class = "unselectable info">
+			TURN INFO
+		</p>
+		<p id = "movesInfo" class = "unselectable moves">
+			MOVES
+		</p>
+		<form>
+			<input type="button" value="New Game" id="newgamebutton" class = "modern1" style="display:inline-block; position:absolute; left:28px; top:410px; z-index:1"/>
+			<input type="button" value="End Game" id="endgamebutton" class = "modern2" style="display:none; position:absolute; left:28px; top:410px; z-index:1"/>
+			<input type="button" value="High Scores" id="highscoresbutton" class = "modern1" style="position:absolute; left:139px; top:410px; z-index:1"/>
+			<input type="button" value="About" id="aboutbutton" class = "modern2" style="display:inline-block; position:absolute; left:250px; top:410px; width:70px; z-index:1"/>
+		</form>
+	</body>
+</html>
