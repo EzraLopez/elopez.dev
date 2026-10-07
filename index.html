@@ -1,44 +1,383 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#e9eee8" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#06100f" media="(prefers-color-scheme: dark)" />
+  <link rel="icon" href="data:," />
+  <title>elopez.dev</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --paper: #e9eee8;
+      --ink: #10231f;
+      --muted: #425d55;
+      --line: rgba(16, 35, 31, .22);
+      --wash: rgba(233, 238, 232, .78);
+      --accent: #087f70;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --paper: #06100f;
+        --ink: #f0f5ed;
+        --muted: #a8bbb4;
+        --line: rgba(240, 245, 237, .22);
+        --wash: rgba(6, 16, 15, .72);
+        --accent: #72e4c8;
+      }
+    }
 
-    <title>Esdras Lopez</title>
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; }
+    html { background: var(--paper); }
+    body {
+      margin: 0;
+      min-height: 100svh;
+      overflow-x: hidden;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
 
-    <link href="https://fonts.googleapis.com/css?family=Exo+2:200" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="css/styles.css">
-    <link rel="stylesheet" type="text/css" href="css/contact-bar.before.min.css">
-    <link rel="stylesheet" type="text/css" href="css/contact-bar.after.min.css">
+    .scene {
+      position: relative;
+      display: grid;
+      min-height: 100svh;
+      isolation: isolate;
+      overflow: hidden;
+    }
+
+    #field {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -3;
+      display: block;
+      background:
+        radial-gradient(circle at 76% 52%, color-mix(in srgb, var(--accent) 26%, transparent), transparent 42%),
+        var(--paper);
+    }
+
+    .veil {
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      pointer-events: none;
+      background:
+        linear-gradient(90deg, var(--wash) 0%, color-mix(in srgb, var(--wash) 80%, transparent) 32%, transparent 64%),
+        linear-gradient(0deg, color-mix(in srgb, var(--paper) 28%, transparent), transparent 34%);
+    }
+
+    .frame {
+      width: min(100%, 1680px);
+      min-height: 100svh;
+      margin: 0 auto;
+      padding: max(28px, env(safe-area-inset-top)) clamp(22px, 5vw, 84px) max(24px, env(safe-area-inset-bottom));
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 40px;
+    }
+
+    .domain {
+      margin: 0;
+      width: max-content;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: clamp(.72rem, .67rem + .18vw, .88rem);
+      font-weight: 600;
+      letter-spacing: .06em;
+      color: var(--muted);
+    }
+
+    .intro {
+      align-self: center;
+      width: min(780px, 77vw);
+      padding-block: 6vh;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(4rem, 10.8vw, 10rem);
+      font-weight: 620;
+      letter-spacing: -.075em;
+      line-height: .79;
+      text-wrap: balance;
+    }
+
+    h1 span {
+      display: block;
+      padding-left: .56em;
+      font-family: Georgia, "Times New Roman", serif;
+      font-style: italic;
+      font-weight: 400;
+      letter-spacing: -.09em;
+      color: var(--accent);
+    }
+
+    .subhead {
+      max-width: 34rem;
+      margin: clamp(28px, 5vh, 54px) 0 0 .2em;
+      color: var(--muted);
+      font-size: clamp(1rem, .88rem + .48vw, 1.32rem);
+      font-weight: 450;
+      line-height: 1.45;
+      letter-spacing: -.018em;
+    }
+
+    .foot {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 28px;
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: .7rem;
+      line-height: 1.3;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .foot p { margin: 0; }
+    .motion-note { display: flex; align-items: center; gap: 10px; }
+    .motion-note::before {
+      content: "";
+      width: 26px;
+      height: 1px;
+      background: currentColor;
+      transform-origin: left;
+      animation: breathe 2.4s ease-in-out infinite;
+    }
+
+    .status { text-align: right; }
+    .status b {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    @keyframes breathe {
+      0%, 100% { transform: scaleX(.36); opacity: .48; }
+      50% { transform: scaleX(1); opacity: 1; }
+    }
+
+    @media (max-width: 700px) {
+      .veil {
+        background:
+          linear-gradient(180deg, var(--wash) 0%, color-mix(in srgb, var(--wash) 55%, transparent) 47%, transparent 74%),
+          linear-gradient(0deg, color-mix(in srgb, var(--paper) 46%, transparent), transparent 36%);
+      }
+      .frame { gap: 24px; }
+      .intro {
+        align-self: start;
+        width: 100%;
+        padding-top: clamp(12vh, 22vw, 20vh);
+      }
+      h1 {
+        font-size: clamp(3.8rem, 22.5vw, 7.3rem);
+        line-height: .82;
+      }
+      h1 span { padding-left: .34em; }
+      .subhead {
+        max-width: 20rem;
+        margin-top: 28px;
+        font-size: 1rem;
+      }
+      .foot { align-items: flex-end; }
+      .motion-note span { max-width: 10ch; }
+    }
+
+    @media (max-width: 390px) {
+      .status span { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .motion-note::before { animation: none; transform: scaleX(1); }
+      .motion-note span::after { content: " paused"; }
+    }
+  </style>
 </head>
-
 <body>
-<div class="content centered">
-    Hi, thanks for stopping by!<br>
-    My name is Esdras Lopez.<br>I'm currently an Android Engineer at <a href="https://squareup.com/">Square</a>. <br><br>
+  <main class="scene">
+    <canvas id="field" aria-hidden="true"></canvas>
+    <div class="veil" aria-hidden="true"></div>
+    <div class="frame">
+      <p class="domain">elopez.dev</p>
 
-    I build Android apps for fun.<br>I love Android because it is the OS
-    that empowers billions of people around the world.<br><br>
+      <section class="intro" aria-labelledby="headline">
+        <h1 id="headline">Ideas,<span>built.</span></h1>
+        <p class="subhead">Experiments, apps, and useful things for the internet.</p>
+      </section>
 
-    Check out some of my work:
-    <div id="work-bar">
-        <div class="hi-icon-wrap hi-icon-effect-1 hi-icon-effect-1a">
-            <i class='hi-icon fa fa-android'><a href="/android/"></a></i>
-            <i class='hi-icon fa fa-github fa-2x'><a target="_blank" href="https://github.com/EzraLopez"></a></i>
-        </div>
+      <footer class="foot">
+        <p class="motion-note"><span>Move to bend the field</span></p>
+        <p class="status"><span>Signal </span><b>continuous</b></p>
+      </footer>
     </div>
-    <br>
-    Let's connect!
-    <div class="hi-icon-wrap hi-icon-effect-1 hi-icon-effect-1a">
-        <i class='hi-icon fa fa-envelope'><a target="_blank" href="mailto:ezra@elopez.dev"></a></i>
-        <i class='hi-icon fa fa-linkedin'><a target="_blank" href="https://www.linkedin.com/in/ezralopez"></a></i>
-        <i class='hi-icon fa fa-twitter'><a target="_blank" href="https://twitter.com/ezraxlopez"></a></i>
-        <i class='hi-icon fa fa-instagram'><a target="_blank" href="https://www.instagram.com/ezraxlopez"></a></i>
-    </div>
-</div>
-<script src="https://use.fontawesome.com/fa8e4e485b.js"></script>
-<script src="js/hover-modernizr.custom.min.js"></script>
+  </main>
+
+  <script>
+    (function () {
+      "use strict";
+      var canvas = document.getElementById("field");
+      var gl = canvas.getContext("webgl", {
+        alpha: false,
+        antialias: false,
+        depth: false,
+        stencil: false,
+        powerPreference: "high-performance"
+      });
+      if (!gl) return;
+
+      var vertexSource = [
+        "attribute vec2 a_position;",
+        "void main(){ gl_Position = vec4(a_position, 0.0, 1.0); }"
+      ].join("\n");
+
+      var fragmentSource = [
+        "precision highp float;",
+        "uniform vec2 u_resolution;",
+        "uniform vec2 u_pointer;",
+        "uniform float u_time;",
+        "uniform float u_dark;",
+        "#define PI 3.14159265359",
+        "mat2 rot(float a){ float c=cos(a), s=sin(a); return mat2(c,-s,s,c); }",
+        "float hash(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }",
+        "float noise(vec2 p){",
+        "  vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);",
+        "  return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);",
+        "}",
+        "void main(){",
+        "  vec2 uv=(2.0*gl_FragCoord.xy-u_resolution.xy)/min(u_resolution.x,u_resolution.y);",
+        "  vec2 mouse=(u_pointer*2.0-1.0)*vec2(u_resolution.x/u_resolution.y,1.0);",
+        "  mouse.y=-mouse.y;",
+        "  float t=u_time;",
+        "  vec2 anchor=vec2(0.47,-0.02)+mouse*0.115;",
+        "  vec2 p=uv-anchor;",
+        "  float r=length(p);",
+        "  float a=atan(p.y,p.x);",
+        "  float warp=0.13*sin(a*3.0-t*.42)+0.055*sin(a*7.0+t*.29);",
+        "  float spiral=r+warp+0.038*sin(r*11.0-t*1.1);",
+        "  float bands=.5+.5*cos(spiral*22.0-a*2.15-t*1.35);",
+        "  bands=pow(bands,4.2);",
+        "  vec2 q=rot(-.24*sin(t*.16))*p;",
+        "  float weave=.5+.5*sin(q.x*10.5+sin(q.y*5.0-t*.62)*2.2+t*.48);",
+        "  weave*=.5+.5*cos(q.y*8.0+sin(q.x*4.0+t*.38)*2.0-t*.34);",
+        "  weave=pow(max(weave,0.0),1.7);",
+        "  float halo=exp(-1.25*r*r);",
+        "  float edge=smoothstep(1.8,.16,r);",
+        "  float field=clamp(bands*.76+weave*.39,0.0,1.0)*edge;",
+        "  float filaments=pow(.5+.5*cos((r+warp)*41.0-a*3.2+t*.72),14.0)*edge;",
+        "  float grain=(noise(gl_FragCoord.xy*.34+vec2(t*7.0,0.0))-.5)*.018;",
+        "  vec3 lightBase=vec3(.914,.933,.906);",
+        "  vec3 darkBase=vec3(.023,.061,.057);",
+        "  vec3 base=mix(lightBase,darkBase,u_dark);",
+        "  vec3 teal=mix(vec3(.02,.43,.37),vec3(.10,.83,.69),u_dark);",
+        "  vec3 lime=mix(vec3(.49,.66,.18),vec3(.74,.95,.31),u_dark);",
+        "  vec3 coral=mix(vec3(.93,.30,.16),vec3(1.0,.30,.19),u_dark);",
+        "  float split=.5+.5*sin(a*2.0+r*7.0-t*.55);",
+        "  vec3 ink=mix(teal,lime,split);",
+        "  ink=mix(ink,coral,smoothstep(.68,.98,bands)*(.4+.6*weave));",
+        "  vec3 col=mix(base,ink,field*(.46+.36*halo));",
+        "  col+=mix(vec3(-.13),vec3(.16),u_dark)*filaments*(.25+.55*halo);",
+        "  col+=mix(vec3(-.025),vec3(.025),u_dark)*halo;",
+        "  col+=grain;",
+        "  float vignette=smoothstep(1.75,.45,length(uv*vec2(.67,.88)));",
+        "  col=mix(base,col,.83+.17*vignette);",
+        "  gl_FragColor=vec4(col,1.0);",
+        "}"
+      ].join("\n");
+
+      function compile(type, source) {
+        var shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+          gl.deleteShader(shader);
+          return null;
+        }
+        return shader;
+      }
+
+      var vertex = compile(gl.VERTEX_SHADER, vertexSource);
+      var fragment = compile(gl.FRAGMENT_SHADER, fragmentSource);
+      if (!vertex || !fragment) return;
+
+      var program = gl.createProgram();
+      gl.attachShader(program, vertex);
+      gl.attachShader(program, fragment);
+      gl.linkProgram(program);
+      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) return;
+      gl.useProgram(program);
+
+      var buffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
+      var position = gl.getAttribLocation(program, "a_position");
+      gl.enableVertexAttribArray(position);
+      gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+
+      var resolution = gl.getUniformLocation(program, "u_resolution");
+      var pointerUniform = gl.getUniformLocation(program, "u_pointer");
+      var timeUniform = gl.getUniformLocation(program, "u_time");
+      var darkUniform = gl.getUniformLocation(program, "u_dark");
+      var darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      var reduceQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+      var pointer = { x: .5, y: .5, tx: .5, ty: .5 };
+      var start = performance.now();
+      var active = true;
+      var raf = 0;
+
+      function resize() {
+        var mobile = window.innerWidth < 700;
+        var dpr = Math.min(window.devicePixelRatio || 1, mobile ? 1.25 : 1.6);
+        var width = Math.max(1, Math.floor(window.innerWidth * dpr));
+        var height = Math.max(1, Math.floor(window.innerHeight * dpr));
+        if (canvas.width !== width || canvas.height !== height) {
+          canvas.width = width;
+          canvas.height = height;
+          gl.viewport(0, 0, width, height);
+        }
+      }
+
+      function draw(now) {
+        resize();
+        pointer.x += (pointer.tx - pointer.x) * .045;
+        pointer.y += (pointer.ty - pointer.y) * .045;
+        gl.uniform2f(resolution, canvas.width, canvas.height);
+        gl.uniform2f(pointerUniform, pointer.x, pointer.y);
+        gl.uniform1f(timeUniform, reduceQuery.matches ? 3.4 : (now - start) * .001);
+        gl.uniform1f(darkUniform, darkQuery.matches ? 1 : 0);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+        if (active && !reduceQuery.matches) raf = requestAnimationFrame(draw);
+      }
+
+      function restart() {
+        cancelAnimationFrame(raf);
+        if (active) raf = requestAnimationFrame(draw);
+      }
+
+      window.addEventListener("pointermove", function (event) {
+        pointer.tx = event.clientX / Math.max(1, window.innerWidth);
+        pointer.ty = event.clientY / Math.max(1, window.innerHeight);
+      }, { passive: true });
+
+      window.addEventListener("pointerdown", function (event) {
+        pointer.tx = event.clientX / Math.max(1, window.innerWidth);
+        pointer.ty = event.clientY / Math.max(1, window.innerHeight);
+      }, { passive: true });
+
+      document.addEventListener("visibilitychange", function () {
+        active = !document.hidden;
+        restart();
+      });
+      window.addEventListener("resize", restart, { passive: true });
+      darkQuery.addEventListener("change", restart);
+      reduceQuery.addEventListener("change", restart);
+      draw(start);
+    })();
+  </script>
 </body>
-
 </html>
