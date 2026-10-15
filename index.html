@@ -206,7 +206,7 @@
 
       var W = 0, H = 0, DPR = 1;
       var CX = 0, CY = 0, R = 300;         // spiral field centre + radius
-      var SQUASH = 0.82;                    // gentle axial tilt
+      var SQUASH = 0.87;                    // gentle axial tilt, opened up a touch
       var spiral = [];                      // stars that form the galaxy
       var field = [];                       // distant background stars
 
@@ -278,24 +278,24 @@
         var portrait = W < 760;
         CX = W * (portrait ? 0.58 : 0.53);
         CY = H * (portrait ? 0.37 : 0.45);
-        R = Math.min(Math.max(W * 0.44, 240), 640);
+        R = Math.min(Math.max(W * 0.72, H * 0.44, 280), 1120);
 
-        var count = Math.min(2300, Math.floor(W * H / 620));
+        var count = Math.min(3800, Math.floor(W * H / 300));
         var ARMS = 3;
         for (var i = 0; i < count; i++) {
           var arm = i % ARMS;
           var t = Math.pow(Math.random(), 0.78);        // denser toward core
-          var ang = arm * (Math.PI * 2 / ARMS) + t * 4.1 + gauss() * (0.10 + t * 0.22);
+          var ang = arm * (Math.PI * 2 / ARMS) + t * 2.35 + gauss() * (0.17 + t * 0.38);
           var rad = Math.pow(t, 0.9) * R;
           var coreStar = t < 0.13;
-          var spread = 5 + t * R * 0.06;                // arms diffuse as they unwind
+          var spread = 6 + t * R * 0.21;                // wide arms, diffusing as they unwind
           spiral.push({
             ang: ang,
             rad: rad,
             px: gauss() * spread,
             py: gauss() * spread,
-            r: coreStar ? rand(0.5, 1.3) : rand(0.4, 1.6) * (1 - t * 0.35),
-            base: rand(0.30, 0.95) * (coreStar ? 0.9 : 1),
+            r: coreStar ? rand(0.5, 1.3) : rand(0.4, 1.5) * (1 - t * 0.35),
+            base: rand(0.26, 0.88) * (coreStar ? 0.9 : 1),
             twSpeed: rand(0.3, 1.3),
             twPhase: rand(0, Math.PI * 2),
             col: pickColor(),
@@ -308,7 +308,7 @@
 
         // Distant field stars: stored in polar form around the same centre
         // so the entire sky turns together, just more slowly.
-        var fCount = Math.min(420, Math.floor(W * H / 4200));
+        var fCount = Math.min(850, Math.floor(W * H / 2400));
         for (var j = 0; j < fCount; j++) {
           var fx = Math.random() * W - CX;
           var fy = (Math.random() * H - CY) / SQUASH;
@@ -495,7 +495,20 @@
         spinBoost = spinBoost * 0.6 + (d / dt) * 0.4;   // release keeps the spin
         lastDragT = now;
       });
-      function endDrag() { dragging = false; }
+      function endDrag(e) {
+        if (!dragging) return;
+        dragging = false;
+        // A tap (barely any angular travel) near the centre gives the
+        // field a little spin in its natural counterclockwise direction.
+        if (!reduced && e && e.type === 'pointerup' && dragMoved < 0.03) {
+          var dx = e.clientX - CX;
+          var dy = (e.clientY - CY) / SQUASH;
+          var tapR = Math.max(120, R * 0.3);
+          if (dx * dx + dy * dy < tapR * tapR) {
+            spinBoost = Math.max(spinBoost - 2.0, -4.5);
+          }
+        }
+      }
       canvas.addEventListener('pointerup', endDrag);
       canvas.addEventListener('pointercancel', endDrag);
 
