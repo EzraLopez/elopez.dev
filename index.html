@@ -4,28 +4,28 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="light dark" />
-  <meta name="theme-color" content="#edf0f5" media="(prefers-color-scheme: light)" />
-  <meta name="theme-color" content="#04060e" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#0a0d18" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#020308" media="(prefers-color-scheme: dark)" />
   <link rel="icon" href="data:," />
   <title>elopez.dev</title>
   <style>
     :root {
       color-scheme: light dark;
-      --paper: #edf0f5;
-      --ink: #0d1226;
-      --muted: #4a5470;
-      --line: rgba(13, 18, 38, .22);
-      --wash: rgba(237, 240, 245, .78);
-      --accent: #a86a08;
+      --paper: #0a0d18;
+      --ink: #e6eaff;
+      --muted: #8b95b5;
+      --line: rgba(230, 234, 255, .18);
+      --wash: rgba(10, 13, 24, .82);
+      --accent: #d99a3a;
     }
     @media (prefers-color-scheme: dark) {
       :root {
-        --paper: #04060e;
+        --paper: #020308;
         --ink: #eef1ff;
-        --muted: #9aa5c4;
-        --line: rgba(238, 241, 255, .22);
-        --wash: rgba(4, 6, 14, .72);
-        --accent: #f2b04a;
+        --muted: #7d87a3;
+        --line: rgba(238, 241, 255, .16);
+        --wash: rgba(2, 3, 8, .78);
+        --accent: #e8a54a;
       }
     }
 
@@ -68,7 +68,7 @@
       z-index: -3;
       display: block;
       background:
-        radial-gradient(circle at 74% 44%, color-mix(in srgb, var(--accent) 26%, transparent), transparent 42%),
+        radial-gradient(circle at 74% 44%, color-mix(in srgb, var(--accent) 11%, transparent), transparent 48%),
         var(--paper);
     }
 
@@ -87,12 +87,12 @@
       z-index: -1;
       left: 0;
       top: 0;
-      width: 62vmin;
-      height: 62vmin;
+      width: 78vmin;
+      height: 78vmin;
       border-radius: 50%;
       pointer-events: none;
-      background: radial-gradient(circle, color-mix(in srgb, var(--accent) 34%, transparent), transparent 62%);
-      opacity: calc(.22 + var(--energy) * .63);
+      background: radial-gradient(circle, color-mix(in srgb, var(--accent) 16%, transparent), transparent 68%);
+      opacity: calc(.07 + var(--energy) * .22);
       transform: translate(-50%, -50%);
       will-change: left, top, opacity;
     }
@@ -109,14 +109,14 @@
       width: 14px;
       height: 14px;
       border-radius: 50%;
-      border: 1.5px solid var(--accent);
+      border: 1px solid var(--accent);
       transform: translate(-50%, -50%);
-      animation: ripple-out .95s cubic-bezier(.16, .7, .3, 1) forwards;
+      animation: ripple-out 1.6s cubic-bezier(.16, .7, .3, 1) forwards;
     }
-    .ripple.r2 { animation-delay: .09s; border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
+    .ripple.r2 { animation-delay: .14s; border-color: color-mix(in srgb, var(--accent) 32%, transparent); }
     @keyframes ripple-out {
-      0% { width: 14px; height: 14px; opacity: .95; }
-      100% { width: 190px; height: 190px; opacity: 0; }
+      0% { width: 14px; height: 14px; opacity: .38; }
+      100% { width: 130px; height: 130px; opacity: 0; }
     }
 
     .veil {
@@ -153,12 +153,12 @@
       align-self: center;
       width: min(780px, 77vw);
       padding-block: 6vh;
-      transform: translate3d(calc(var(--px) * -12px), calc(var(--py) * -9px), 0);
+      transform: translate3d(calc(var(--px) * -5px), calc(var(--py) * -4px), 0);
       will-change: transform;
     }
 
     .domain {
-      transform: translate3d(calc(var(--px) * 6px), calc(var(--py) * 4px), 0);
+      transform: translate3d(calc(var(--px) * 3px), calc(var(--py) * 2px), 0);
     }
 
     h1 {
@@ -178,8 +178,8 @@
       font-weight: 400;
       letter-spacing: -.09em;
       color: var(--accent);
-      text-shadow: 0 0 calc(var(--energy) * 34px) color-mix(in srgb, var(--accent) 65%, transparent);
-      transition: text-shadow .35s ease;
+      text-shadow: 0 0 calc(var(--energy) * 12px) color-mix(in srgb, var(--accent) 38%, transparent);
+      transition: text-shadow .6s ease;
     }
 
     body.is-touching h1 { letter-spacing: -.068em; }
@@ -218,7 +218,7 @@
       height: 1px;
       background: currentColor;
       transform-origin: left;
-      animation: breathe 2.4s ease-in-out infinite;
+      animation: breathe 4.6s ease-in-out infinite;
     }
 
     .status { text-align: right; }
@@ -228,8 +228,8 @@
     }
 
     @keyframes breathe {
-      0%, 100% { transform: scaleX(.36); opacity: .48; }
-      50% { transform: scaleX(1); opacity: 1; }
+      0%, 100% { transform: scaleX(.52); opacity: .38; }
+      50% { transform: scaleX(.88); opacity: .72; }
     }
 
     @media (max-width: 700px) {
@@ -340,10 +340,10 @@
         "  vec2 offs=vec2(hash(id+19.19),hash(id+7.77))-0.5;",
         "  vec2 f=fract(g)-0.5-offs*0.7;",
         "  float d=length(f);",
-        "  float tw=0.55+0.45*sin(t*(1.5+h*3.5)+h*80.0);",
+        "  float tw=0.78+0.22*sin(t*(0.45+h*0.9)+h*80.0);",
         "  float core=smoothstep(sz,0.0,d);",
-        "  float halo=smoothstep(sz*3.4,0.0,d)*0.20;",
-        "  float b=(core+halo)*tw*smoothstep(thresh,1.0,h);",
+        "  float halo=smoothstep(sz*3.4,0.0,d)*0.08;",
+        "  float b=(core+halo)*tw*smoothstep(thresh,1.0,h)*0.62;",
         "  vec3 tint=mix(vec3(0.78,0.86,1.0),vec3(1.0,0.83,0.58),hash(id+3.31));",
         "  return tint*b;",
         "}",
@@ -353,7 +353,7 @@
         "  vec2 mouse=(u_pointer*2.0-1.0)*vec2(aspect,1.0);",
         "  mouse.y=-mouse.y;",
         "  float t=u_time;",
-        "  float mass=0.55+u_energy*0.8+u_press*0.9;",
+        "  float mass=0.42+u_energy*0.45+u_press*0.5;",
         "  vec2 home=vec2(0.55*min(aspect,1.2),0.04);",
         "  vec2 well=mix(home,mouse,0.6);",
         "  vec2 rel=uv-well;",
@@ -368,45 +368,55 @@
         "      if(age>0.0 && age<2.6){",
         "        vec2 pc=(pu.xy*2.0-1.0)*(u_resolution/min(u_resolution.x,u_resolution.y)); pc.y=-pc.y;",
         "        float pd=length(uv-pc);",
-        "        float ring=exp(-12.0*abs(pd-age*0.85))*exp(-age*1.5)*pu.w;",
+        "        float ring=exp(-12.0*abs(pd-age*0.48))*exp(-age*1.1)*pu.w*0.55;",
         "        waveGlow+=ring;",
         "        waveVec+=normalize(uv-pc+0.0001)*ring*0.12;",
         "      }",
         "    }",
         "  }",
-        "  float bendAmt=mass*0.05/(dist+0.10);",
-        "  vec2 lensed=uv+dir*bendAmt+waveVec;",
-        "  float mag=1.0+clamp(mass*0.03/(dist*dist+0.03),0.0,1.3);",
-        "  vec3 lightBase=vec3(0.929,0.941,0.965);",
-        "  vec3 darkBase=vec3(0.012,0.016,0.045);",
+        "  float bendAmt=mass*0.032/(dist+0.10);",
+        "  vec2 lensed=uv+dir*bendAmt+waveVec*0.5;",
+        "  float mag=1.0+clamp(mass*0.018/(dist*dist+0.03),0.0,0.7);",
+        "  vec3 lightBase=vec3(0.032,0.038,0.070);",
+        "  vec3 darkBase=vec3(0.006,0.008,0.020);",
         "  vec3 base=mix(lightBase,darkBase,u_dark);",
         "  vec3 col=base;",
-        "  float neb=fbm(lensed*1.7+fbm(lensed*3.1)*0.7+vec2(t*0.008,0.0));",
+        "  float neb=fbm(lensed*1.7+fbm(lensed*3.1)*0.7+vec2(t*0.0022,0.0));",
         "  vec2 bw=rot(0.62)*lensed;",
         "  float band=exp(-pow(bw.y*1.85,2.0));",
-        "  float dust=fbm(lensed*3.6-vec2(t*0.006,0.0));",
-        "  vec3 nebBlue=mix(vec3(0.55,0.62,0.88),vec3(0.13,0.20,0.50),u_dark);",
-        "  vec3 nebAmber=mix(vec3(0.88,0.66,0.38),vec3(0.42,0.24,0.08),u_dark);",
-        "  float nebAmt=neb*(0.16+band*0.5)*(0.45+0.55*dust);",
-        "  col+=mix(nebBlue,nebAmber,smoothstep(0.45,0.85,fbm(lensed*2.3+4.7)))*nebAmt*mix(0.30,0.38,u_dark);",
-        "  vec3 starCol=starLayer(lensed,5.0,0.90,0.05,t)*1.2",
-        "             + starLayer(lensed+13.7,11.0,0.905,0.08,t*1.13)*0.85",
-        "             + starLayer(lensed+31.3,23.0,0.88,0.12,t*0.9)*0.55;",
+        "  float dust=fbm(lensed*3.6-vec2(t*0.0016,0.0));",
+        "  vec3 nebBlue=mix(vec3(0.22,0.28,0.52),vec3(0.07,0.11,0.32),u_dark);",
+        "  vec3 nebAmber=mix(vec3(0.52,0.34,0.16),vec3(0.28,0.15,0.05),u_dark);",
+        "  float nebAmt=neb*(0.10+band*0.32)*(0.45+0.55*dust);",
+        "  col+=mix(nebBlue,nebAmber,smoothstep(0.45,0.85,fbm(lensed*2.3+4.7)))*nebAmt*mix(0.32,0.36,u_dark);",
+        "  vec2 gpos=lensed-vec2(-0.42,0.22);",
+        "  float gr=length(gpos*vec2(1.0,0.60));",
+        "  float ga=atan(gpos.y,gpos.x);",
+        "  float spiral=sin(ga*2.0+log(gr+0.09)*6.5-t*0.055);",
+        "  float arm=smoothstep(0.15,1.0,spiral)*exp(-gr*2.4)*smoothstep(0.02,0.18,gr);",
+        "  float gcore=exp(-gr*7.0)*0.55;",
+        "  col+=vec3(0.38,0.44,0.68)*arm*0.075+vec3(0.62,0.48,0.28)*(arm*0.028+gcore*0.05);",
+        "  vec3 starCol=starLayer(lensed,5.0,0.93,0.05,t)*0.62",
+        "             + starLayer(lensed+13.7,11.0,0.93,0.08,t*0.85)*0.44",
+        "             + starLayer(lensed+31.3,23.0,0.91,0.12,t*0.7)*0.28;",
         "  float starLum=clamp(dot(starCol,vec3(0.3333))*1.5,0.0,1.0);",
-        "  col=mix(mix(col,vec3(0.09,0.11,0.28),starLum*mag*0.9), col+starCol*mag, u_dark);",
+        "  col=mix(mix(col,vec3(0.025,0.035,0.10),starLum*mag*0.7), col+starCol*mag, u_dark);",
         "  float ang=atan(rel.y,rel.x);",
-        "  float ringR=0.15+u_press*0.02+u_energy*0.012;",
-        "  float ringBand=exp(-pow((dist-ringR)*19.0,2.0));",
-        "  float streaks=0.62+0.38*sin(ang*9.0-t*(2.4+u_energy*3.5+u_press*2.0)+3.0*sin(ang*3.0+t*0.6));",
-        "  float ringI=ringBand*streaks*(0.4+0.45*u_press+0.4*u_energy);",
-        "  vec3 ringCol=mix(vec3(0.80,0.44,0.06),vec3(1.0,0.64,0.28),u_dark);",
-        "  col+=ringCol*ringI*mix(0.7,1.2,u_dark);",
-        "  float rim=exp(-pow((dist-ringR)*30.0,2.0));",
-        "  col+=ringCol*rim*0.22;",
-        "  col+=ringCol*waveGlow*0.35;",
+        "  float ringR=0.15+u_press*0.014+u_energy*0.008;",
+        "  float ringBand=exp(-pow((dist-ringR)*15.0,2.0));",
+        "  float streaks=0.72+0.28*sin(ang*5.0-t*(0.45+u_energy*0.7+u_press*0.4)+2.0*sin(ang*2.0+t*0.12));",
+        "  float ringI=ringBand*streaks*(0.16+0.20*u_press+0.16*u_energy);",
+        "  vec3 ringCol=mix(vec3(0.72,0.40,0.10),vec3(0.92,0.55,0.20),u_dark);",
+        "  col+=ringCol*ringI*mix(0.75,1.0,u_dark);",
+        "  float flare1=pow(max(0.0,sin(ang*2.0+t*0.16+1.2)),3.0)*exp(-abs(dist-ringR*1.9)*3.2);",
+        "  float flare2=pow(max(0.0,sin(ang*3.0-t*0.11)),4.0)*exp(-abs(dist-ringR*1.35)*5.0);",
+        "  col+=ringCol*(flare1*0.055+flare2*0.04)*(0.7+0.5*u_press);",
+        "  float rim=exp(-pow((dist-ringR)*26.0,2.0));",
+        "  col+=ringCol*rim*0.09;",
+        "  col+=ringCol*waveGlow*0.14;",
         "  float core=smoothstep(0.10,0.015,dist);",
         "  col=mix(col, base*mix(0.72,0.35,u_dark), core*0.8);",
-        "  float grain=(noise(gl_FragCoord.xy*0.34+vec2(t*7.0,0.0))-0.5)*0.018;",
+        "  float grain=(noise(gl_FragCoord.xy*0.34+vec2(t*2.0,0.0))-0.5)*0.010;",
         "  col+=grain;",
         "  float vignette=smoothstep(1.75,0.45,length(uv*vec2(0.67,0.88)));",
         "  col=mix(base,col,0.86+0.14*vignette);",
@@ -497,7 +507,7 @@
           r.style.left = x + "px";
           r.style.top = y + "px";
           ripplesEl.appendChild(r);
-          (function (el) { setTimeout(function () { el.remove(); }, 1150); })(r);
+          (function (el) { setTimeout(function () { el.remove(); }, 1850); })(r);
         }
       }
 
@@ -512,11 +522,11 @@
         sCanvas.height = Math.floor(window.innerHeight * dpr);
         if (sCtx) sCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
         ambient = [];
-        var n = Math.min(46, Math.floor(window.innerWidth / 16));
+        var n = Math.min(16, Math.floor(window.innerWidth / 42));
         for (var i = 0; i < n; i++) {
           ambient.push({ x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight,
-            r: .8 + Math.random() * 1.9, ph: Math.random() * 6.28, sp: .25 + Math.random() * .7,
-            dr: (Math.random() - .5) * .07 });
+            r: .6 + Math.random() * 1.1, ph: Math.random() * 6.28, sp: .12 + Math.random() * .3,
+            dr: (Math.random() - .5) * .02 });
         }
       }
       function star(x, y, r, alpha, color) {
@@ -534,14 +544,13 @@
       }
       function burst(x, y, count) {
         if (!sCtx || reduceQuery.matches) return;
-        var dark = darkQuery.matches;
-        var colors = dark ? ["#ffffff", "#f2b04a", "#a9c4ff", "#ffe9b8"] : ["#a86a08", "#2c3f9e", "#d97b2f", "#141a33"];
+        var colors = ["#e8dcc2", "#d99a3a", "#93a7d8"];
         for (var i = 0; i < count; i++) {
-          var ang = Math.random() * 6.283, vel = .4 + Math.random() * 2.6;
-          sparks.push({ x: x, y: y, vx: Math.cos(ang) * vel, vy: Math.sin(ang) * vel - .7,
-            life: 1, decay: .008 + Math.random() * .02, r: 2.5 + Math.random() * 6,
+          var ang = Math.random() * 6.283, vel = .2 + Math.random() * 1.1;
+          sparks.push({ x: x, y: y, vx: Math.cos(ang) * vel, vy: Math.sin(ang) * vel - .25,
+            life: 1, decay: .012 + Math.random() * .018, r: 1.4 + Math.random() * 2.6,
             color: colors[i % colors.length], rot: Math.random() * 6.28 });
-          if (sparks.length > 170) sparks.shift();
+          if (sparks.length > 36) sparks.shift();
         }
       }
       function drawSparkles(now) {
@@ -550,13 +559,13 @@
         sCtx.clearRect(0, 0, w, h);
         var t = now * .001;
         var dark = darkQuery.matches;
-        var ambColor = dark ? "#cdd9ff" : "#31449e";
+        var ambColor = "#aebadd";
         var i, s;
         for (i = 0; i < ambient.length; i++) {
           s = ambient[i];
           s.x += s.dr; if (s.x < -4) s.x = w + 4; if (s.x > w + 4) s.x = -4;
           var tw = .5 + .5 * Math.sin(t * s.sp * 2 + s.ph);
-          star(s.x, s.y + Math.sin(t * s.sp + s.ph) * 6, s.r * (0.6 + tw * .7), .1 + tw * .3, ambColor);
+          star(s.x, s.y + Math.sin(t * s.sp + s.ph) * 2.5, s.r * (0.7 + tw * .35), .03 + tw * .09, ambColor);
         }
         for (i = sparks.length - 1; i >= 0; i--) {
           s = sparks[i];
@@ -581,12 +590,12 @@
 
       function draw(now) {
         resize();
-        var ease = press > .1 ? .11 : .055;
+        var ease = press > .1 ? .05 : .026;
         pointer.x += (pointer.tx - pointer.x) * ease;
         pointer.y += (pointer.ty - pointer.y) * ease;
-        energyTarget *= .965;
-        energy += (energyTarget - energy) * .07;
-        press += (pressTarget - press) * .14;
+        energyTarget *= .978;
+        energy += (energyTarget - energy) * .04;
+        press += (pressTarget - press) * .07;
         gl.uniform2f(resolution, canvas.width, canvas.height);
         gl.uniform2f(pointerUniform, pointer.x, pointer.y);
         gl.uniform1f(timeUniform, reduceQuery.matches ? 3.4 : (now - start) * .001);
@@ -620,10 +629,10 @@
         var now = performance.now();
         if (lastX >= 0) {
           var d = Math.hypot(x - lastX, y - lastY);
-          energyTarget = Math.min(1, energyTarget + d / 260);
-          if ((isDrag || coarseQuery.matches) && d > 14 && now - lastMoveAt > 46) {
+          energyTarget = Math.min(1, energyTarget + d / 560);
+          if ((isDrag || coarseQuery.matches) && d > 30 && now - lastMoveAt > 140) {
             lastMoveAt = now;
-            burst(x, y, 3);
+            burst(x, y, 1);
           }
         }
         lastX = x; lastY = y;
@@ -651,11 +660,11 @@
         movePointer(event.clientX, event.clientY, false);
         lastTouchAt = performance.now();
         pressTarget = 1;
-        energyTarget = Math.min(1, energyTarget + .55);
+        energyTarget = Math.min(1, energyTarget + .26);
         document.body.classList.add("is-touching");
-        addPulse(pointer.tx, pointer.ty, 1);
+        addPulse(pointer.tx, pointer.ty, 0.55);
         spawnRipple(event.clientX, event.clientY);
-        burst(event.clientX, event.clientY, coarseQuery.matches ? 20 : 14);
+        burst(event.clientX, event.clientY, coarseQuery.matches ? 5 : 4);
         setStatus("impact");
         askTiltOnce();
         if (navigator.vibrate && coarseQuery.matches) { try { navigator.vibrate(8); } catch (e) {} }
