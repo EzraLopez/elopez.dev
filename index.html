@@ -3,715 +3,517 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="color-scheme" content="light dark" />
-  <meta name="theme-color" content="#0a0d18" media="(prefers-color-scheme: light)" />
-  <meta name="theme-color" content="#020308" media="(prefers-color-scheme: dark)" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#05060e" />
   <link rel="icon" href="data:," />
   <title>elopez.dev</title>
   <style>
     :root {
-      color-scheme: light dark;
-      --paper: #0a0d18;
-      --ink: #e6eaff;
-      --muted: #8b95b5;
-      --line: rgba(230, 234, 255, .18);
-      --wash: rgba(10, 13, 24, .82);
-      --accent: #d99a3a;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --paper: #020308;
-        --ink: #eef1ff;
-        --muted: #7d87a3;
-        --line: rgba(238, 241, 255, .16);
-        --wash: rgba(2, 3, 8, .78);
-        --accent: #e8a54a;
-      }
+      color-scheme: dark;
+      --bg: #05060e;
+      --ink: #f5f5f5;
+      --muted: #bcc0ca;
+      --faint: #8b9099;
+      --line: rgba(255, 255, 255, 0.14);
     }
 
     * { box-sizing: border-box; }
+    html { background: var(--bg); }
     html, body { min-height: 100%; }
-    html { background: var(--paper); }
     body {
       margin: 0;
       min-height: 100svh;
-      overflow-x: hidden;
-      overscroll-behavior: none;
-      background: var(--paper);
+      background: var(--bg);
       color: var(--ink);
-      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
-      --px: 0;
-      --py: 0;
-      --energy: 0;
+      overflow-x: hidden;
     }
 
-    .scene {
-      position: relative;
-      display: grid;
-      min-height: 100svh;
-      isolation: isolate;
-      overflow: hidden;
-      touch-action: none;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-      -webkit-user-select: none;
+    ::selection {
+      background: var(--ink);
+      color: var(--bg);
     }
 
-    #field {
-      position: absolute;
+    /* ---- Animated spiral-field backdrop ---- */
+    #universe {
+      position: fixed;
       inset: 0;
       width: 100%;
       height: 100%;
-      z-index: -3;
+      z-index: 0;
       display: block;
-      background:
-        radial-gradient(circle at 74% 44%, color-mix(in srgb, var(--accent) 11%, transparent), transparent 48%),
-        var(--paper);
+      cursor: grab;
+      touch-action: pan-y;
     }
+    #universe:active { cursor: grabbing; }
 
-    #sparkles {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -1;
-      display: block;
-      pointer-events: none;
-    }
-
-    #glow {
-      position: absolute;
-      z-index: -1;
-      left: 0;
-      top: 0;
-      width: 78vmin;
-      height: 78vmin;
-      border-radius: 50%;
-      pointer-events: none;
-      background: radial-gradient(circle, color-mix(in srgb, var(--accent) 16%, transparent), transparent 68%);
-      opacity: calc(.07 + var(--energy) * .22);
-      transform: translate(-50%, -50%);
-      will-change: left, top, opacity;
-    }
-
-    #ripples {
-      position: absolute;
-      inset: 0;
-      z-index: 2;
-      pointer-events: none;
-      overflow: hidden;
-    }
-    .ripple {
-      position: absolute;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      border: 1px solid var(--accent);
-      transform: translate(-50%, -50%);
-      animation: ripple-out 1.6s cubic-bezier(.16, .7, .3, 1) forwards;
-    }
-    .ripple.r2 { animation-delay: .14s; border-color: color-mix(in srgb, var(--accent) 32%, transparent); }
-    @keyframes ripple-out {
-      0% { width: 14px; height: 14px; opacity: .38; }
-      100% { width: 130px; height: 130px; opacity: 0; }
-    }
-
+    /* Soft legibility veil: darker behind the type, clear over the sky */
     .veil {
-      position: absolute;
+      position: fixed;
       inset: 0;
-      z-index: -2;
+      z-index: 1;
       pointer-events: none;
       background:
-        linear-gradient(90deg, var(--wash) 0%, color-mix(in srgb, var(--wash) 80%, transparent) 32%, transparent 64%),
-        linear-gradient(0deg, color-mix(in srgb, var(--paper) 28%, transparent), transparent 34%);
+        linear-gradient(100deg, rgba(5, 6, 14, 0.55) 0%, rgba(5, 6, 14, 0.26) 40%, rgba(5, 6, 14, 0.02) 70%, rgba(5, 6, 14, 0.14) 100%),
+        linear-gradient(to top, rgba(5, 6, 14, 0.40) 0%, rgba(5, 6, 14, 0) 26%),
+        radial-gradient(120% 90% at 50% 50%, rgba(5, 6, 14, 0) 55%, rgba(3, 4, 9, 0.48) 100%);
     }
 
-    .frame {
-      width: min(100%, 1680px);
+    .page {
+      position: relative;
+      z-index: 2;
+      width: min(100%, 1200px);
       min-height: 100svh;
       margin: 0 auto;
-      padding: max(28px, env(safe-area-inset-top)) clamp(22px, 5vw, 84px) max(24px, env(safe-area-inset-bottom));
-      display: grid;
-      grid-template-rows: auto 1fr auto;
-      gap: 40px;
+      padding: max(26px, env(safe-area-inset-top)) clamp(22px, 5vw, 64px) max(26px, env(safe-area-inset-bottom));
+      display: flex;
+      flex-direction: column;
+      pointer-events: none;
     }
 
-    .domain {
+    header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .wordmark {
       margin: 0;
-      width: max-content;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: clamp(.72rem, .67rem + .18vw, .88rem);
+      font-size: 15px;
       font-weight: 600;
-      letter-spacing: .06em;
-      color: var(--muted);
+      letter-spacing: -0.01em;
+      color: var(--ink);
+      text-shadow: 0 1px 12px rgba(0, 0, 0, 0.6);
+    }
+
+    .header-note {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--faint);
+      text-shadow: 0 1px 12px rgba(0, 0, 0, 0.6);
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      padding: 64px 0 72px;
     }
 
     .intro {
-      align-self: center;
-      width: min(780px, 77vw);
-      padding-block: 6vh;
-      transform: translate3d(calc(var(--px) * -5px), calc(var(--py) * -4px), 0);
-      will-change: transform;
-    }
-
-    .domain {
-      transform: translate3d(calc(var(--px) * 3px), calc(var(--py) * 2px), 0);
+      width: min(680px, 100%);
+      animation: rise 700ms cubic-bezier(.22, .61, .36, 1) both;
     }
 
     h1 {
       margin: 0;
-      font-size: clamp(4rem, 10.8vw, 10rem);
-      font-weight: 620;
-      letter-spacing: -.075em;
-      line-height: .79;
+      font-size: clamp(3.4rem, 7.5vw, 5.75rem);
+      font-weight: 560;
+      letter-spacing: -0.045em;
+      line-height: 1.02;
       text-wrap: balance;
+      text-shadow: 0 2px 30px rgba(0, 0, 0, 0.55);
     }
 
     h1 span {
       display: block;
-      padding-left: .56em;
-      font-family: Georgia, "Times New Roman", serif;
-      font-style: italic;
+    }
+
+    .lede {
+      max-width: 30rem;
+      margin: 30px 0 0;
+      font-size: clamp(1.125rem, 1.02rem + 0.45vw, 1.375rem);
       font-weight: 400;
-      letter-spacing: -.09em;
-      color: var(--accent);
-      text-shadow: 0 0 calc(var(--energy) * 12px) color-mix(in srgb, var(--accent) 38%, transparent);
-      transition: text-shadow .6s ease;
-    }
-
-    body.is-touching h1 { letter-spacing: -.068em; }
-    h1 { transition: letter-spacing .45s ease; }
-    body.is-touching .subhead { color: var(--ink); }
-    .subhead { transition: color .4s ease; }
-
-    .subhead {
-      max-width: 34rem;
-      margin: clamp(28px, 5vh, 54px) 0 0 .2em;
+      line-height: 1.55;
+      letter-spacing: -0.011em;
       color: var(--muted);
-      font-size: clamp(1rem, .88rem + .48vw, 1.32rem);
-      font-weight: 450;
-      line-height: 1.45;
-      letter-spacing: -.018em;
+      text-shadow: 0 1px 16px rgba(0, 0, 0, 0.65);
     }
 
-    .foot {
+    footer {
+      border-top: 1px solid var(--line);
+      padding-top: 20px;
       display: flex;
-      align-items: flex-end;
+      align-items: baseline;
       justify-content: space-between;
-      gap: 28px;
-      color: var(--muted);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: .7rem;
-      line-height: 1.3;
-      letter-spacing: .06em;
-      text-transform: uppercase;
+      gap: 24px;
+      font-size: 13.5px;
+      line-height: 1.5;
+      color: var(--faint);
     }
 
-    .foot p { margin: 0; }
-    .motion-note { display: flex; align-items: center; gap: 10px; }
-    .motion-note::before {
-      content: "";
-      width: 26px;
-      height: 1px;
-      background: currentColor;
-      transform-origin: left;
-      animation: breathe 4.6s ease-in-out infinite;
-    }
+    footer p { margin: 0; }
 
-    .status { text-align: right; }
-    .status b {
-      color: var(--ink);
-      font-weight: 600;
-    }
-
-    @keyframes breathe {
-      0%, 100% { transform: scaleX(.52); opacity: .38; }
-      50% { transform: scaleX(.88); opacity: .72; }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     @media (max-width: 700px) {
-      .veil {
-        background:
-          linear-gradient(180deg, var(--wash) 0%, color-mix(in srgb, var(--wash) 55%, transparent) 47%, transparent 74%),
-          linear-gradient(0deg, color-mix(in srgb, var(--paper) 46%, transparent), transparent 36%);
-      }
-      .frame { gap: 24px; }
-      .intro {
-        align-self: start;
-        width: 100%;
-        padding-top: clamp(12vh, 22vw, 20vh);
+      main {
+        align-items: flex-start;
+        padding: 15vh 0 56px;
       }
       h1 {
-        font-size: clamp(3.8rem, 22.5vw, 7.3rem);
-        line-height: .82;
+        font-size: clamp(3.1rem, 15.5vw, 4.6rem);
+        line-height: 1.04;
       }
-      h1 span { padding-left: .34em; }
-      .subhead {
-        max-width: 20rem;
-        margin-top: 28px;
-        font-size: 1rem;
+      .lede { margin-top: 24px; }
+      .header-note { display: none; }
+      .veil {
+        background:
+          linear-gradient(to bottom, rgba(5, 6, 14, 0.26) 0%, rgba(5, 6, 14, 0.08) 34%, rgba(5, 6, 14, 0.18) 62%, rgba(5, 6, 14, 0.42) 100%),
+          radial-gradient(120% 90% at 50% 50%, rgba(5, 6, 14, 0) 55%, rgba(3, 4, 9, 0.48) 100%);
       }
-      .foot { align-items: flex-end; }
-      .motion-note span { max-width: 19ch; }
-    }
-
-    @media (max-width: 390px) {
-      .status span { display: none; }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .motion-note::before { animation: none; transform: scaleX(1); }
-      .motion-note span::after { content: " paused"; }
-      .ripple { animation: none; opacity: 0; }
-      .intro, .domain { transform: none; }
-      h1, .subhead, h1 span { transition: none; }
+      .intro { animation: none; }
     }
   </style>
 </head>
 <body>
-  <main class="scene">
-    <canvas id="field" aria-hidden="true"></canvas>
-    <div class="veil" aria-hidden="true"></div>
-    <canvas id="sparkles" aria-hidden="true"></canvas>
-    <div id="glow" aria-hidden="true"></div>
-    <div id="ripples" aria-hidden="true"></div>
-    <div class="frame">
-      <p class="domain">elopez.dev</p>
+  <canvas id="universe" aria-hidden="true"></canvas>
+  <div class="veil" aria-hidden="true"></div>
 
+  <div class="page">
+    <header>
+      <p class="wordmark">elopez.dev</p>
+      <p class="header-note">Personal site</p>
+    </header>
+
+    <main>
       <section class="intro" aria-labelledby="headline">
-        <h1 id="headline">Ideas,<span>built.</span></h1>
-        <p class="subhead">Experiments, apps, and useful things for the internet.</p>
+        <h1 id="headline">Ideas, <span>built.</span></h1>
+        <p class="lede">Experiments, apps, and useful things for the internet.</p>
       </section>
+    </main>
 
-      <footer class="foot">
-        <p class="motion-note"><span id="motion-label">Move to bend the universe</span></p>
-        <p class="status"><span>Signal </span><b id="status-word">drifting</b></p>
-      </footer>
-    </div>
-  </main>
+    <footer>
+      <p>&copy; 2026 elopez.dev</p>
+    </footer>
+  </div>
 
   <script>
     (function () {
-      "use strict";
-      var canvas = document.getElementById("field");
-      var gl = canvas.getContext("webgl", {
-        alpha: false,
-        antialias: false,
-        depth: false,
-        stencil: false,
-        powerPreference: "high-performance"
-      });
-      if (!gl) return;
+      var canvas = document.getElementById('universe');
+      var ctx = canvas.getContext('2d');
+      var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-      var vertexSource = [
-        "attribute vec2 a_position;",
-        "void main(){ gl_Position = vec4(a_position, 0.0, 1.0); }"
-      ].join("\n");
+      var W = 0, H = 0, DPR = 1;
+      var CX = 0, CY = 0, R = 300;         // spiral field centre + radius
+      var SQUASH = 0.82;                    // gentle axial tilt
+      var spiral = [];                      // stars that form the galaxy
+      var field = [];                       // distant background stars
 
-      var fragmentSource = [
-        "precision highp float;",
-        "uniform vec2 u_resolution;",
-        "uniform vec2 u_pointer;",
-        "uniform float u_time;",
-        "uniform float u_dark;",
-        "uniform float u_energy;",
-        "uniform float u_press;",
-        "uniform vec4 u_pulses[4];",
-        "#define PI 3.14159265359",
-        "mat2 rot(float a){ float c=cos(a), s=sin(a); return mat2(c,-s,s,c); }",
-        "float hash(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }",
-        "float noise(vec2 p){",
-        "  vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);",
-        "  return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);",
-        "}",
-        "float fbm(vec2 p){",
-        "  float v=0.0; float a=0.5;",
-        "  for(int i=0;i<4;i++){ v+=a*noise(p); p=p*2.03+vec2(17.3,9.1); a*=0.5; }",
-        "  return v;",
-        "}",
-        "vec3 starLayer(vec2 uv, float scale, float thresh, float sz, float t){",
-        "  vec2 g=uv*scale;",
-        "  vec2 id=floor(g);",
-        "  float h=hash(id);",
-        "  if(h<thresh) return vec3(0.0);",
-        "  vec2 offs=vec2(hash(id+19.19),hash(id+7.77))-0.5;",
-        "  vec2 f=fract(g)-0.5-offs*0.7;",
-        "  float d=length(f);",
-        "  float tw=0.78+0.22*sin(t*(0.45+h*0.9)+h*80.0);",
-        "  float core=smoothstep(sz,0.0,d);",
-        "  float halo=smoothstep(sz*3.4,0.0,d)*0.08;",
-        "  float b=(core+halo)*tw*smoothstep(thresh,1.0,h)*0.62;",
-        "  vec3 tint=mix(vec3(0.78,0.86,1.0),vec3(1.0,0.83,0.58),hash(id+3.31));",
-        "  return tint*b;",
-        "}",
-        "void main(){",
-        "  float aspect=u_resolution.x/u_resolution.y;",
-        "  vec2 uv=(2.0*gl_FragCoord.xy-u_resolution.xy)/min(u_resolution.x,u_resolution.y);",
-        "  vec2 mouse=(u_pointer*2.0-1.0)*vec2(aspect,1.0);",
-        "  mouse.y=-mouse.y;",
-        "  float t=u_time;",
-        "  float mass=0.42+u_energy*0.45+u_press*0.5;",
-        "  vec2 home=vec2(0.55*min(aspect,1.2),0.04);",
-        "  vec2 well=mix(home,mouse,0.6);",
-        "  vec2 rel=uv-well;",
-        "  float dist=length(rel);",
-        "  vec2 dir=rel/max(dist,0.0001);",
-        "  vec2 waveVec=vec2(0.0);",
-        "  float waveGlow=0.0;",
-        "  for(int i=0;i<4;i++){",
-        "    vec4 pu=u_pulses[i];",
-        "    if(pu.z>0.0){",
-        "      float age=t-pu.z;",
-        "      if(age>0.0 && age<2.6){",
-        "        vec2 pc=(pu.xy*2.0-1.0)*(u_resolution/min(u_resolution.x,u_resolution.y)); pc.y=-pc.y;",
-        "        float pd=length(uv-pc);",
-        "        float ring=exp(-12.0*abs(pd-age*0.48))*exp(-age*1.1)*pu.w*0.55;",
-        "        waveGlow+=ring;",
-        "        waveVec+=normalize(uv-pc+0.0001)*ring*0.12;",
-        "      }",
-        "    }",
-        "  }",
-        "  float bendAmt=mass*0.032/(dist+0.10);",
-        "  vec2 lensed=uv+dir*bendAmt+waveVec*0.5;",
-        "  float mag=1.0+clamp(mass*0.018/(dist*dist+0.03),0.0,0.7);",
-        "  vec3 lightBase=vec3(0.032,0.038,0.070);",
-        "  vec3 darkBase=vec3(0.006,0.008,0.020);",
-        "  vec3 base=mix(lightBase,darkBase,u_dark);",
-        "  vec3 col=base;",
-        "  float neb=fbm(lensed*1.7+fbm(lensed*3.1)*0.7+vec2(t*0.0022,0.0));",
-        "  vec2 bw=rot(0.62)*lensed;",
-        "  float band=exp(-pow(bw.y*1.85,2.0));",
-        "  float dust=fbm(lensed*3.6-vec2(t*0.0016,0.0));",
-        "  vec3 nebBlue=mix(vec3(0.22,0.28,0.52),vec3(0.07,0.11,0.32),u_dark);",
-        "  vec3 nebAmber=mix(vec3(0.52,0.34,0.16),vec3(0.28,0.15,0.05),u_dark);",
-        "  float nebAmt=neb*(0.10+band*0.32)*(0.45+0.55*dust);",
-        "  col+=mix(nebBlue,nebAmber,smoothstep(0.45,0.85,fbm(lensed*2.3+4.7)))*nebAmt*mix(0.32,0.36,u_dark);",
-        "  vec2 gpos=lensed-vec2(-0.42,0.22);",
-        "  float gr=length(gpos*vec2(1.0,0.60));",
-        "  float ga=atan(gpos.y,gpos.x);",
-        "  float spiral=sin(ga*2.0+log(gr+0.09)*6.5-t*0.055);",
-        "  float arm=smoothstep(0.15,1.0,spiral)*exp(-gr*2.4)*smoothstep(0.02,0.18,gr);",
-        "  float gcore=exp(-gr*7.0)*0.55;",
-        "  col+=vec3(0.38,0.44,0.68)*arm*0.075+vec3(0.62,0.48,0.28)*(arm*0.028+gcore*0.05);",
-        "  vec3 starCol=starLayer(lensed,5.0,0.93,0.05,t)*0.62",
-        "             + starLayer(lensed+13.7,11.0,0.93,0.08,t*0.85)*0.44",
-        "             + starLayer(lensed+31.3,23.0,0.91,0.12,t*0.7)*0.28;",
-        "  float starLum=clamp(dot(starCol,vec3(0.3333))*1.5,0.0,1.0);",
-        "  col=mix(mix(col,vec3(0.025,0.035,0.10),starLum*mag*0.7), col+starCol*mag, u_dark);",
-        "  float ang=atan(rel.y,rel.x);",
-        "  float ringR=0.15+u_press*0.014+u_energy*0.008;",
-        "  float ringBand=exp(-pow((dist-ringR)*15.0,2.0));",
-        "  float streaks=0.72+0.28*sin(ang*5.0-t*(0.45+u_energy*0.7+u_press*0.4)+2.0*sin(ang*2.0+t*0.12));",
-        "  float ringI=ringBand*streaks*(0.16+0.20*u_press+0.16*u_energy);",
-        "  vec3 ringCol=mix(vec3(0.72,0.40,0.10),vec3(0.92,0.55,0.20),u_dark);",
-        "  col+=ringCol*ringI*mix(0.75,1.0,u_dark);",
-        "  float flare1=pow(max(0.0,sin(ang*2.0+t*0.16+1.2)),3.0)*exp(-abs(dist-ringR*1.9)*3.2);",
-        "  float flare2=pow(max(0.0,sin(ang*3.0-t*0.11)),4.0)*exp(-abs(dist-ringR*1.35)*5.0);",
-        "  col+=ringCol*(flare1*0.055+flare2*0.04)*(0.7+0.5*u_press);",
-        "  float rim=exp(-pow((dist-ringR)*26.0,2.0));",
-        "  col+=ringCol*rim*0.09;",
-        "  col+=ringCol*waveGlow*0.14;",
-        "  float core=smoothstep(0.10,0.015,dist);",
-        "  col=mix(col, base*mix(0.72,0.35,u_dark), core*0.8);",
-        "  float grain=(noise(gl_FragCoord.xy*0.34+vec2(t*2.0,0.0))-0.5)*0.010;",
-        "  col+=grain;",
-        "  float vignette=smoothstep(1.75,0.45,length(uv*vec2(0.67,0.88)));",
-        "  col=mix(base,col,0.86+0.14*vignette);",
-        "  gl_FragColor=vec4(col,1.0);",
-        "}"
-      ].join("\n");
+      // Rotation state. Canvas angles grow clockwise on screen, so the
+      // stately counterclockwise spin of the reference is a negative rate:
+      // a quarter-turn (~1.57 rad) every ~75 s -> full turn in ~5 min.
+      var BASE_RATE = -(Math.PI * 2) / 300; // rad per second
+      var rotation = 0;                     // integrated field angle
+      var spinBoost = 0;                    // drag inertia / key spin, decays
 
-      function compile(type, source) {
-        var shader = gl.createShader(type);
-        gl.shaderSource(shader, source);
-        gl.compileShader(shader);
-        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-          gl.deleteShader(shader);
-          return null;
-        }
-        return shader;
+      // Intro: scattered stars spiral inward and coalesce
+      var INTRO_LEN = 2600;                 // ms of travel per star
+      var INTRO_STAGGER = 700;              // ms of per-star delay spread
+      var startTime = performance.now();
+      var lastNow = startTime;
+
+      function rand(min, max) { return min + Math.random() * (max - min); }
+      function gauss() { return (Math.random() + Math.random() + Math.random() - 1.5) / 1.5; }
+      function easeOutCubic(x) { return 1 - Math.pow(1 - x, 3); }
+
+      /* ---------- Pre-rendered indigo nebula texture ---------- */
+      var nebula = document.createElement('canvas');
+      (function buildNebula() {
+        nebula.width = 1024; nebula.height = 1024;
+        var n = nebula.getContext('2d');
+        var blobs = [
+          { x: 0.24, y: 0.30, r: 0.52, c: '40, 52, 110',  a: 0.30 },
+          { x: 0.70, y: 0.62, r: 0.58, c: '26, 36, 92',   a: 0.28 },
+          { x: 0.55, y: 0.22, r: 0.36, c: '62, 50, 104',  a: 0.18 },
+          { x: 0.86, y: 0.16, r: 0.30, c: '70, 62, 110',  a: 0.10 },
+          { x: 0.14, y: 0.78, r: 0.40, c: '22, 48, 86',   a: 0.18 },
+          { x: 0.44, y: 0.88, r: 0.34, c: '30, 38, 88',   a: 0.22 }
+        ];
+        blobs.forEach(function (b) {
+          var g = n.createRadialGradient(b.x * 1024, b.y * 1024, 0, b.x * 1024, b.y * 1024, b.r * 1024);
+          g.addColorStop(0, 'rgba(' + b.c + ',' + b.a + ')');
+          g.addColorStop(0.55, 'rgba(' + b.c + ',' + (b.a * 0.45) + ')');
+          g.addColorStop(1, 'rgba(' + b.c + ',0)');
+          n.fillStyle = g;
+          n.fillRect(0, 0, 1024, 1024);
+        });
+      })();
+
+      /* Soft radial glow sprite for the brightest stars */
+      var glowSprite = document.createElement('canvas');
+      (function buildGlow() {
+        glowSprite.width = 64; glowSprite.height = 64;
+        var g = glowSprite.getContext('2d');
+        var grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+        grad.addColorStop(0, 'rgba(225,233,255,0.55)');
+        grad.addColorStop(0.4, 'rgba(200,214,250,0.16)');
+        grad.addColorStop(1, 'rgba(200,214,250,0)');
+        g.fillStyle = grad;
+        g.fillRect(0, 0, 64, 64);
+      })();
+
+      function pickColor() {
+        var p = Math.random();
+        if (p < 0.07) return '196,150,220';  // faint purple / magenta dust
+        if (p < 0.15) return '255,226,178';  // warm amber, sparse
+        if (p < 0.38) return '238,242,250';  // white
+        return '186,206,255';                // blue-white, the dominant arm light
       }
 
-      var vertex = compile(gl.VERTEX_SHADER, vertexSource);
-      var fragment = compile(gl.FRAGMENT_SHADER, fragmentSource);
-      if (!vertex || !fragment) return;
+      /* ---------- Build the spiral field ---------- */
+      function buildField() {
+        spiral = [];
+        field = [];
+        var portrait = W < 760;
+        CX = W * (portrait ? 0.58 : 0.53);
+        CY = H * (portrait ? 0.37 : 0.45);
+        R = Math.min(Math.max(W * 0.44, 240), 640);
 
-      var program = gl.createProgram();
-      gl.attachShader(program, vertex);
-      gl.attachShader(program, fragment);
-      gl.linkProgram(program);
-      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) return;
-      gl.useProgram(program);
-
-      var buffer = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
-      var position = gl.getAttribLocation(program, "a_position");
-      gl.enableVertexAttribArray(position);
-      gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
-
-      var resolution = gl.getUniformLocation(program, "u_resolution");
-      var pointerUniform = gl.getUniformLocation(program, "u_pointer");
-      var timeUniform = gl.getUniformLocation(program, "u_time");
-      var darkUniform = gl.getUniformLocation(program, "u_dark");
-      var energyUniform = gl.getUniformLocation(program, "u_energy");
-      var pressUniform = gl.getUniformLocation(program, "u_press");
-      var pulsesUniform = gl.getUniformLocation(program, "u_pulses[0]");
-      var darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
-      var reduceQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-      var coarseQuery = window.matchMedia("(pointer: coarse)");
-      var pointer = { x: .5, y: .5, tx: .5, ty: .5 };
-      var start = performance.now();
-      var active = true;
-      var raf = 0;
-
-      /* --- magic state --- */
-      var energy = 0, energyTarget = 0, press = 0, pressTarget = 0;
-      var pulses = new Float32Array(16); /* 4 x (x, y, startSec, strength) */
-      var pulseIdx = 0;
-      var lastX = -1, lastY = -1, lastMoveAt = 0;
-      var tiltAsked = false, lastTouchAt = 0;
-      var glowEl = document.getElementById("glow");
-      var ripplesEl = document.getElementById("ripples");
-      var statusWord = document.getElementById("status-word");
-      var motionLabel = document.getElementById("motion-label");
-      var statusTimer = 0;
-      if (coarseQuery.matches && motionLabel) motionLabel.textContent = "Tap, drag & tilt the universe";
-
-      function setStatus(word) {
-        if (!statusWord || statusWord.textContent === word) return;
-        statusWord.textContent = word;
-        clearTimeout(statusTimer);
-        if (word !== "drifting") {
-          statusTimer = setTimeout(function () { statusWord.textContent = "drifting"; }, 1900);
-        }
-      }
-
-      function addPulse(nx, ny, strength) {
-        var sec = (performance.now() - start) * .001;
-        pulses[pulseIdx * 4] = nx;
-        pulses[pulseIdx * 4 + 1] = ny;
-        pulses[pulseIdx * 4 + 2] = reduceQuery.matches ? -1 : sec;
-        pulses[pulseIdx * 4 + 3] = strength;
-        pulseIdx = (pulseIdx + 1) % 4;
-      }
-
-      function spawnRipple(x, y) {
-        if (reduceQuery.matches || !ripplesEl) return;
-        for (var i = 0; i < 2; i++) {
-          var r = document.createElement("span");
-          r.className = "ripple" + (i ? " r2" : "");
-          r.style.left = x + "px";
-          r.style.top = y + "px";
-          ripplesEl.appendChild(r);
-          (function (el) { setTimeout(function () { el.remove(); }, 1850); })(r);
-        }
-      }
-
-      /* --- sparkle layer (2D canvas) --- */
-      var sCanvas = document.getElementById("sparkles");
-      var sCtx = sCanvas ? sCanvas.getContext("2d") : null;
-      var sparks = [], ambient = [], sRaf = 0, sActive = true;
-      function sizeSparkles() {
-        if (!sCanvas) return;
-        var dpr = Math.min(window.devicePixelRatio || 1, 2);
-        sCanvas.width = Math.floor(window.innerWidth * dpr);
-        sCanvas.height = Math.floor(window.innerHeight * dpr);
-        if (sCtx) sCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        ambient = [];
-        var n = Math.min(16, Math.floor(window.innerWidth / 42));
-        for (var i = 0; i < n; i++) {
-          ambient.push({ x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight,
-            r: .6 + Math.random() * 1.1, ph: Math.random() * 6.28, sp: .12 + Math.random() * .3,
-            dr: (Math.random() - .5) * .02 });
-        }
-      }
-      function star(x, y, r, alpha, color) {
-        sCtx.save();
-        sCtx.globalAlpha = alpha;
-        sCtx.fillStyle = color;
-        sCtx.beginPath();
-        sCtx.moveTo(x, y - r);
-        sCtx.quadraticCurveTo(x, y, x + r, y);
-        sCtx.quadraticCurveTo(x, y, x, y + r);
-        sCtx.quadraticCurveTo(x, y, x - r, y);
-        sCtx.quadraticCurveTo(x, y, x, y - r);
-        sCtx.fill();
-        sCtx.restore();
-      }
-      function burst(x, y, count) {
-        if (!sCtx || reduceQuery.matches) return;
-        var colors = ["#e8dcc2", "#d99a3a", "#93a7d8"];
+        var count = Math.min(2300, Math.floor(W * H / 620));
+        var ARMS = 3;
         for (var i = 0; i < count; i++) {
-          var ang = Math.random() * 6.283, vel = .2 + Math.random() * 1.1;
-          sparks.push({ x: x, y: y, vx: Math.cos(ang) * vel, vy: Math.sin(ang) * vel - .25,
-            life: 1, decay: .012 + Math.random() * .018, r: 1.4 + Math.random() * 2.6,
-            color: colors[i % colors.length], rot: Math.random() * 6.28 });
-          if (sparks.length > 36) sparks.shift();
+          var arm = i % ARMS;
+          var t = Math.pow(Math.random(), 0.78);        // denser toward core
+          var ang = arm * (Math.PI * 2 / ARMS) + t * 4.1 + gauss() * (0.10 + t * 0.22);
+          var rad = Math.pow(t, 0.9) * R;
+          var coreStar = t < 0.13;
+          var spread = 5 + t * R * 0.06;                // arms diffuse as they unwind
+          spiral.push({
+            ang: ang,
+            rad: rad,
+            px: gauss() * spread,
+            py: gauss() * spread,
+            r: coreStar ? rand(0.5, 1.3) : rand(0.4, 1.6) * (1 - t * 0.35),
+            base: rand(0.30, 0.95) * (coreStar ? 0.9 : 1),
+            twSpeed: rand(0.3, 1.3),
+            twPhase: rand(0, Math.PI * 2),
+            col: pickColor(),
+            // intro scatter: start far out, wound further around the spiral
+            scatterRad: rad * rand(1.5, 2.7) + rand(20, 130),
+            scatterAng: rand(1.4, 3.4) + (1 - t) * 1.2,
+            delay: Math.random() * INTRO_STAGGER
+          });
         }
-      }
-      function drawSparkles(now) {
-        if (!sCtx) return;
-        var w = window.innerWidth, h = window.innerHeight;
-        sCtx.clearRect(0, 0, w, h);
-        var t = now * .001;
-        var dark = darkQuery.matches;
-        var ambColor = "#aebadd";
-        var i, s;
-        for (i = 0; i < ambient.length; i++) {
-          s = ambient[i];
-          s.x += s.dr; if (s.x < -4) s.x = w + 4; if (s.x > w + 4) s.x = -4;
-          var tw = .5 + .5 * Math.sin(t * s.sp * 2 + s.ph);
-          star(s.x, s.y + Math.sin(t * s.sp + s.ph) * 2.5, s.r * (0.7 + tw * .35), .03 + tw * .09, ambColor);
+
+        // Distant field stars: stored in polar form around the same centre
+        // so the entire sky turns together, just more slowly.
+        var fCount = Math.min(420, Math.floor(W * H / 4200));
+        for (var j = 0; j < fCount; j++) {
+          var fx = Math.random() * W - CX;
+          var fy = (Math.random() * H - CY) / SQUASH;
+          field.push({
+            ang: Math.atan2(fy, fx),
+            rad: Math.sqrt(fx * fx + fy * fy),
+            r: rand(0.4, 1.4),
+            base: rand(0.25, 0.85),
+            twSpeed: rand(0.3, 1.2),
+            twPhase: rand(0, Math.PI * 2),
+            col: pickColor()
+          });
         }
-        for (i = sparks.length - 1; i >= 0; i--) {
-          s = sparks[i];
-          s.x += s.vx; s.y += s.vy; s.vy += .018; s.vx *= .985; s.life -= s.decay;
-          if (s.life <= 0) { sparks.splice(i, 1); continue; }
-          star(s.x, s.y, s.r * s.life + .6, Math.min(1, s.life * 1.4), s.color);
-        }
-        if (sActive && !reduceQuery.matches) sRaf = requestAnimationFrame(drawSparkles);
       }
 
       function resize() {
-        var mobile = window.innerWidth < 700;
-        var dpr = Math.min(window.devicePixelRatio || 1, mobile ? 1.25 : 1.6);
-        var width = Math.max(1, Math.floor(window.innerWidth * dpr));
-        var height = Math.max(1, Math.floor(window.innerHeight * dpr));
-        if (canvas.width !== width || canvas.height !== height) {
-          canvas.width = width;
-          canvas.height = height;
-          gl.viewport(0, 0, width, height);
+        DPR = Math.min(window.devicePixelRatio || 1, 2);
+        W = window.innerWidth;
+        H = window.innerHeight;
+        canvas.width = Math.floor(W * DPR);
+        canvas.height = Math.floor(H * DPR);
+        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+        buildField();
+        if (reduced) drawFrame(startTime + INTRO_LEN + INTRO_STAGGER + 1);
+      }
+
+      /* ---------- Core: dense glow + soft cross-flare ---------- */
+      function drawCore(introE) {
+        var coreR = R * 0.30 * (0.7 + 0.3 * introE);
+        ctx.save();
+        ctx.translate(CX, CY);
+        ctx.scale(1, SQUASH);
+        ctx.globalCompositeOperation = 'lighter';
+
+        var glow = ctx.createRadialGradient(0, 0, 0, 0, 0, coreR);
+        glow.addColorStop(0, 'rgba(255,246,228,' + (0.85 * introE).toFixed(3) + ')');
+        glow.addColorStop(0.18, 'rgba(226,222,248,' + (0.42 * introE).toFixed(3) + ')');
+        glow.addColorStop(0.5, 'rgba(150,164,220,' + (0.13 * introE).toFixed(3) + ')');
+        glow.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(0, 0, coreR, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Soft cross-flare: stretched radial gradients, no hard edges
+        function flare(len, thick, alpha) {
+          ctx.save();
+          ctx.scale(1, thick / len);
+          var fg = ctx.createRadialGradient(0, 0, 0, 0, 0, len);
+          fg.addColorStop(0, 'rgba(232,238,255,' + alpha.toFixed(3) + ')');
+          fg.addColorStop(0.5, 'rgba(232,238,255,' + (alpha * 0.38).toFixed(3) + ')');
+          fg.addColorStop(1, 'rgba(232,238,255,0)');
+          ctx.fillStyle = fg;
+          ctx.beginPath();
+          ctx.arc(0, 0, len, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
         }
+        flare(coreR * 1.45, coreR * 0.13, 0.16 * introE);
+        ctx.save();
+        ctx.rotate(Math.PI / 2);
+        flare(coreR * 1.05, coreR * 0.13, 0.11 * introE);
+        ctx.restore();
+        ctx.restore();
       }
 
-      function draw(now) {
-        resize();
-        var ease = press > .1 ? .05 : .026;
-        pointer.x += (pointer.tx - pointer.x) * ease;
-        pointer.y += (pointer.ty - pointer.y) * ease;
-        energyTarget *= .978;
-        energy += (energyTarget - energy) * .04;
-        press += (pressTarget - press) * .07;
-        gl.uniform2f(resolution, canvas.width, canvas.height);
-        gl.uniform2f(pointerUniform, pointer.x, pointer.y);
-        gl.uniform1f(timeUniform, reduceQuery.matches ? 3.4 : (now - start) * .001);
-        gl.uniform1f(darkUniform, darkQuery.matches ? 1 : 0);
-        gl.uniform1f(energyUniform, reduceQuery.matches ? 0 : energy);
-        gl.uniform1f(pressUniform, reduceQuery.matches ? 0 : press);
-        gl.uniform4fv(pulsesUniform, pulses);
-        /* parallax + glow follow the smoothed pointer */
-        var px = (pointer.x - .5) * 2, py = (pointer.y - .5) * 2;
-        document.body.style.setProperty("--px", px.toFixed(3));
-        document.body.style.setProperty("--py", py.toFixed(3));
-        document.body.style.setProperty("--energy", Math.min(1, energy + press * .6).toFixed(3));
-        if (glowEl) {
-          glowEl.style.left = (pointer.x * window.innerWidth) + "px";
-          glowEl.style.top = (pointer.y * window.innerHeight) + "px";
+      function drawFrame(now) {
+        var elapsed = now - startTime;
+        ctx.clearRect(0, 0, W, H);
+
+        // Near-black base with a dark blue / indigo cast
+        var base = ctx.createLinearGradient(0, 0, 0, H);
+        base.addColorStop(0, '#04050c');
+        base.addColorStop(0.55, '#05060e');
+        base.addColorStop(1, '#030409');
+        ctx.fillStyle = base;
+        ctx.fillRect(0, 0, W, H);
+
+        // Nebula wash, barely drifting
+        var nebScale = Math.max(W, H) * 1.7;
+        ctx.save();
+        ctx.globalAlpha = 0.8;
+        ctx.drawImage(nebula,
+          CX - nebScale / 2 + Math.sin(elapsed * 0.000016) * 22,
+          CY - nebScale / 2 + Math.cos(elapsed * 0.000013) * 18,
+          nebScale, nebScale);
+        ctx.restore();
+
+        // Overall intro progress for the core
+        var introGlobal = reduced ? 1 : easeOutCubic(Math.min(elapsed / (INTRO_LEN + INTRO_STAGGER), 1));
+
+        // Distant field stars — whole sky turning together, slower
+        var fieldRot = rotation * 0.35;
+        for (var j = 0; j < field.length; j++) {
+          var f = field[j];
+          var fa = f.ang + fieldRot;
+          var fx = CX + Math.cos(fa) * f.rad;
+          var fy = CY + Math.sin(fa) * f.rad * SQUASH;
+          if (fx < -4 || fx > W + 4 || fy < -4 || fy > H + 4) continue;
+          var ftw = 0.74 + 0.26 * Math.sin(elapsed * 0.001 * f.twSpeed + f.twPhase);
+          ctx.fillStyle = 'rgba(' + f.col + ',' + (f.base * ftw * introGlobal).toFixed(3) + ')';
+          ctx.beginPath();
+          ctx.arc(fx, fy, f.r, 0, Math.PI * 2);
+          ctx.fill();
         }
-        gl.drawArrays(gl.TRIANGLES, 0, 3);
-        if (active && !reduceQuery.matches) raf = requestAnimationFrame(draw);
+
+        drawCore(introGlobal);
+
+        // Spiral arm stars
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        for (var i = 0; i < spiral.length; i++) {
+          var s = spiral[i];
+          var e, rad, ang;
+          if (reduced) {
+            e = 1; rad = s.rad; ang = s.ang;
+          } else {
+            var local = (elapsed - s.delay) / INTRO_LEN;
+            local = local < 0 ? 0 : (local > 1 ? 1 : local);
+            e = easeOutCubic(local);
+            rad = s.scatterRad + (s.rad - s.scatterRad) * e;
+            ang = s.ang + s.scatterAng * (1 - e);   // unwinds as it falls in
+          }
+          var a = ang + rotation;
+          var x = CX + Math.cos(a) * rad + s.px;
+          var y = CY + Math.sin(a) * rad * SQUASH + s.py;
+          if (x < -4 || x > W + 4 || y < -4 || y > H + 4) continue;
+          var tw = 0.76 + 0.24 * Math.sin(elapsed * 0.001 * s.twSpeed + s.twPhase);
+          var alpha = s.base * tw * (0.15 + 0.85 * e);
+          ctx.fillStyle = 'rgba(' + s.col + ',' + alpha.toFixed(3) + ')';
+          ctx.beginPath();
+          ctx.arc(x, y, s.r, 0, Math.PI * 2);
+          ctx.fill();
+          if (s.r > 1.35) {
+            var gs = s.r * 8;
+            ctx.globalAlpha = alpha * 0.55;
+            ctx.drawImage(glowSprite, x - gs / 2, y - gs / 2, gs, gs);
+            ctx.globalAlpha = 1;
+          }
+        }
+        ctx.restore();
       }
 
-      function restart() {
-        cancelAnimationFrame(raf);
-        if (active) raf = requestAnimationFrame(draw);
+      function loop(now) {
+        var dt = Math.min((now - lastNow) / 1000, 0.05);
+        lastNow = now;
+        spinBoost *= Math.pow(0.12, dt);            // inertia decays fast but smooth
+        rotation += (BASE_RATE + spinBoost + keySpin) * dt;
+        drawFrame(now);
+        requestAnimationFrame(loop);
       }
 
-      function movePointer(x, y, isDrag) {
-        var nx = x / Math.max(1, window.innerWidth);
-        var ny = y / Math.max(1, window.innerHeight);
-        pointer.tx = nx;
-        pointer.ty = ny;
+      /* ---------- Interaction: drag to rotate, arrow keys too ---------- */
+      var dragging = false, dragPointerAng = 0, dragMoved = 0, lastDragT = 0;
+      var keySpin = 0;
+
+      function pointerAngle(e) {
+        return Math.atan2((e.clientY - CY) / SQUASH, e.clientX - CX);
+      }
+      function angleDelta(a, b) {
+        var d = a - b;
+        while (d > Math.PI) d -= Math.PI * 2;
+        while (d < -Math.PI) d += Math.PI * 2;
+        return d;
+      }
+
+      canvas.addEventListener('pointerdown', function (e) {
+        dragging = true;
+        dragMoved = 0;
+        dragPointerAng = pointerAngle(e);
+        lastDragT = performance.now();
+        spinBoost = 0;
+        canvas.setPointerCapture(e.pointerId);
+      });
+      canvas.addEventListener('pointermove', function (e) {
+        if (!dragging) return;
+        var a = pointerAngle(e);
+        var d = angleDelta(a, dragPointerAng);
+        dragPointerAng = a;
+        rotation += d;
+        dragMoved += Math.abs(d);
         var now = performance.now();
-        if (lastX >= 0) {
-          var d = Math.hypot(x - lastX, y - lastY);
-          energyTarget = Math.min(1, energyTarget + d / 560);
-          if ((isDrag || coarseQuery.matches) && d > 30 && now - lastMoveAt > 140) {
-            lastMoveAt = now;
-            burst(x, y, 1);
-          }
-        }
-        lastX = x; lastY = y;
-      }
-
-      function askTiltOnce() {
-        if (tiltAsked) return;
-        tiltAsked = true;
-        try {
-          if (typeof DeviceOrientationEvent !== "undefined" &&
-              typeof DeviceOrientationEvent.requestPermission === "function") {
-            DeviceOrientationEvent.requestPermission().then(function (res) {
-              if (res === "granted") setStatus("tilt live");
-            }).catch(function () {});
-          }
-        } catch (e) {}
-      }
-
-      window.addEventListener("pointermove", function (event) {
-        movePointer(event.clientX, event.clientY, pressTarget > 0);
-        if (pressTarget > 0) setStatus("bending");
-      }, { passive: true });
-
-      window.addEventListener("pointerdown", function (event) {
-        movePointer(event.clientX, event.clientY, false);
-        lastTouchAt = performance.now();
-        pressTarget = 1;
-        energyTarget = Math.min(1, energyTarget + .26);
-        document.body.classList.add("is-touching");
-        addPulse(pointer.tx, pointer.ty, 0.55);
-        spawnRipple(event.clientX, event.clientY);
-        burst(event.clientX, event.clientY, coarseQuery.matches ? 5 : 4);
-        setStatus("impact");
-        askTiltOnce();
-        if (navigator.vibrate && coarseQuery.matches) { try { navigator.vibrate(8); } catch (e) {} }
-      }, { passive: true });
-
-      function endPress() {
-        pressTarget = 0;
-        document.body.classList.remove("is-touching");
-        lastX = -1; lastY = -1;
-      }
-      window.addEventListener("pointerup", endPress, { passive: true });
-      window.addEventListener("pointercancel", endPress, { passive: true });
-      window.addEventListener("blur", endPress);
-
-      /* tilt steers the field when the finger is off it */
-      window.addEventListener("deviceorientation", function (event) {
-        if (event.gamma === null || event.beta === null) return;
-        if (performance.now() - lastTouchAt < 1200 || pressTarget > 0) return;
-        var nx = .5 + event.gamma / 64;
-        var ny = .5 + (event.beta - 42) / 64;
-        pointer.tx = Math.min(.92, Math.max(.08, nx));
-        pointer.ty = Math.min(.92, Math.max(.08, ny));
-        energyTarget = Math.min(.55, energyTarget + .012);
-      }, { passive: true });
-
-      document.addEventListener("visibilitychange", function () {
-        active = !document.hidden;
-        sActive = active;
-        restart();
-        cancelAnimationFrame(sRaf);
-        if (sActive && !reduceQuery.matches) sRaf = requestAnimationFrame(drawSparkles);
-        else if (sCtx) drawSparkles(performance.now());
+        var dt = Math.max((now - lastDragT) / 1000, 0.008);
+        spinBoost = spinBoost * 0.6 + (d / dt) * 0.4;   // release keeps the spin
+        lastDragT = now;
       });
-      window.addEventListener("resize", function () { sizeSparkles(); restart(); }, { passive: true });
-      darkQuery.addEventListener("change", restart);
-      reduceQuery.addEventListener("change", function () {
-        restart();
-        cancelAnimationFrame(sRaf);
-        if (!reduceQuery.matches) sRaf = requestAnimationFrame(drawSparkles);
-        else drawSparkles(performance.now());
+      function endDrag() { dragging = false; }
+      canvas.addEventListener('pointerup', endDrag);
+      canvas.addEventListener('pointercancel', endDrag);
+
+      window.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowLeft') { keySpin = -0.30; e.preventDefault(); }
+        else if (e.key === 'ArrowRight') { keySpin = 0.30; e.preventDefault(); }
       });
-      sizeSparkles();
-      draw(start);
-      if (sCtx) {
-        if (reduceQuery.matches) drawSparkles(1200);
-        else sRaf = requestAnimationFrame(drawSparkles);
-      }
+      window.addEventListener('keyup', function (e) {
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') keySpin = 0;
+      });
+
+      window.addEventListener('resize', resize);
+      document.addEventListener('visibilitychange', function () {
+        lastNow = performance.now();
+      });
+
+      resize();
+      if (!reduced) requestAnimationFrame(loop);
     })();
   </script>
 </body>
