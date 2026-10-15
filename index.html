@@ -36,11 +36,15 @@
       margin: 0;
       min-height: 100svh;
       overflow-x: hidden;
+      overscroll-behavior: none;
       background: var(--paper);
       color: var(--ink);
       font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
+      --px: 0;
+      --py: 0;
+      --energy: 0;
     }
 
     .scene {
@@ -49,6 +53,11 @@
       min-height: 100svh;
       isolation: isolate;
       overflow: hidden;
+      touch-action: none;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
     #field {
@@ -61,6 +70,53 @@
       background:
         radial-gradient(circle at 76% 52%, color-mix(in srgb, var(--accent) 26%, transparent), transparent 42%),
         var(--paper);
+    }
+
+    #sparkles {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      display: block;
+      pointer-events: none;
+    }
+
+    #glow {
+      position: absolute;
+      z-index: -1;
+      left: 0;
+      top: 0;
+      width: 62vmin;
+      height: 62vmin;
+      border-radius: 50%;
+      pointer-events: none;
+      background: radial-gradient(circle, color-mix(in srgb, var(--accent) 34%, transparent), transparent 62%);
+      opacity: calc(.22 + var(--energy) * .63);
+      transform: translate(-50%, -50%);
+      will-change: left, top, opacity;
+    }
+
+    #ripples {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .ripple {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 1.5px solid var(--accent);
+      transform: translate(-50%, -50%);
+      animation: ripple-out .95s cubic-bezier(.16, .7, .3, 1) forwards;
+    }
+    .ripple.r2 { animation-delay: .09s; border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
+    @keyframes ripple-out {
+      0% { width: 14px; height: 14px; opacity: .95; }
+      100% { width: 190px; height: 190px; opacity: 0; }
     }
 
     .veil {
@@ -97,6 +153,12 @@
       align-self: center;
       width: min(780px, 77vw);
       padding-block: 6vh;
+      transform: translate3d(calc(var(--px) * -12px), calc(var(--py) * -9px), 0);
+      will-change: transform;
+    }
+
+    .domain {
+      transform: translate3d(calc(var(--px) * 6px), calc(var(--py) * 4px), 0);
     }
 
     h1 {
@@ -116,7 +178,14 @@
       font-weight: 400;
       letter-spacing: -.09em;
       color: var(--accent);
+      text-shadow: 0 0 calc(var(--energy) * 34px) color-mix(in srgb, var(--accent) 65%, transparent);
+      transition: text-shadow .35s ease;
     }
+
+    body.is-touching h1 { letter-spacing: -.068em; }
+    h1 { transition: letter-spacing .45s ease; }
+    body.is-touching .subhead { color: var(--ink); }
+    .subhead { transition: color .4s ease; }
 
     .subhead {
       max-width: 34rem;
@@ -186,7 +255,7 @@
         font-size: 1rem;
       }
       .foot { align-items: flex-end; }
-      .motion-note span { max-width: 10ch; }
+      .motion-note span { max-width: 19ch; }
     }
 
     @media (max-width: 390px) {
@@ -196,6 +265,9 @@
     @media (prefers-reduced-motion: reduce) {
       .motion-note::before { animation: none; transform: scaleX(1); }
       .motion-note span::after { content: " paused"; }
+      .ripple { animation: none; opacity: 0; }
+      .intro, .domain { transform: none; }
+      h1, .subhead, h1 span { transition: none; }
     }
   </style>
 </head>
@@ -203,6 +275,9 @@
   <main class="scene">
     <canvas id="field" aria-hidden="true"></canvas>
     <div class="veil" aria-hidden="true"></div>
+    <canvas id="sparkles" aria-hidden="true"></canvas>
+    <div id="glow" aria-hidden="true"></div>
+    <div id="ripples" aria-hidden="true"></div>
     <div class="frame">
       <p class="domain">elopez.dev</p>
 
@@ -212,8 +287,8 @@
       </section>
 
       <footer class="foot">
-        <p class="motion-note"><span>Move to bend the field</span></p>
-        <p class="status"><span>Signal </span><b>continuous</b></p>
+        <p class="motion-note"><span id="motion-label">Move to bend the field</span></p>
+        <p class="status"><span>Signal </span><b id="status-word">continuous</b></p>
       </footer>
     </div>
   </main>
@@ -242,6 +317,9 @@
         "uniform vec2 u_pointer;",
         "uniform float u_time;",
         "uniform float u_dark;",
+        "uniform float u_energy;",
+        "uniform float u_press;",
+        "uniform vec4 u_pulses[4];",
         "#define PI 3.14159265359",
         "mat2 rot(float a){ float c=cos(a), s=sin(a); return mat2(c,-s,s,c); }",
         "float hash(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }",
@@ -254,11 +332,25 @@
         "  vec2 mouse=(u_pointer*2.0-1.0)*vec2(u_resolution.x/u_resolution.y,1.0);",
         "  mouse.y=-mouse.y;",
         "  float t=u_time;",
-        "  vec2 anchor=vec2(0.47,-0.02)+mouse*0.115;",
+        "  vec2 anchor=vec2(0.47,-0.02)+mouse*(0.115+u_energy*0.24);",
         "  vec2 p=uv-anchor;",
+        "  float pulseGlow=0.0;",
+        "  for(int i=0;i<4;i++){",
+        "    vec4 pu=u_pulses[i];",
+        "    if(pu.z>0.0){",
+        "      float age=t-pu.z;",
+        "      if(age>0.0 && age<2.6){",
+        "        vec2 pc=(pu.xy*2.0-1.0)*(u_resolution/min(u_resolution.x,u_resolution.y)); pc.y=-pc.y;",
+        "        float pd=length(uv-pc);",
+        "        float ring=exp(-14.0*abs(pd-age*0.85))*exp(-age*1.5)*pu.w;",
+        "        pulseGlow+=ring;",
+        "        p+=normalize(uv-pc+0.0001)*ring*0.14;",
+        "      }",
+        "    }",
+        "  }",
         "  float r=length(p);",
         "  float a=atan(p.y,p.x);",
-        "  float warp=0.13*sin(a*3.0-t*.42)+0.055*sin(a*7.0+t*.29);",
+        "  float warp=0.13*sin(a*3.0-t*.42)+0.055*sin(a*7.0+t*.29)+u_energy*0.07*sin(a*5.0-t*1.7+r*6.0);",
         "  float spiral=r+warp+0.038*sin(r*11.0-t*1.1);",
         "  float bands=.5+.5*cos(spiral*22.0-a*2.15-t*1.35);",
         "  bands=pow(bands,4.2);",
@@ -270,6 +362,7 @@
         "  float edge=smoothstep(1.8,.16,r);",
         "  float field=clamp(bands*.76+weave*.39,0.0,1.0)*edge;",
         "  float filaments=pow(.5+.5*cos((r+warp)*41.0-a*3.2+t*.72),14.0)*edge;",
+        "  float twinkle=step(0.9965,hash(floor(gl_FragCoord.xy/3.0)+floor(t*2.5)*7.31))*(0.35+u_energy);",
         "  float grain=(noise(gl_FragCoord.xy*.34+vec2(t*7.0,0.0))-.5)*.018;",
         "  vec3 lightBase=vec3(.914,.933,.906);",
         "  vec3 darkBase=vec3(.023,.061,.057);",
@@ -280,8 +373,10 @@
         "  float split=.5+.5*sin(a*2.0+r*7.0-t*.55);",
         "  vec3 ink=mix(teal,lime,split);",
         "  ink=mix(ink,coral,smoothstep(.68,.98,bands)*(.4+.6*weave));",
-        "  vec3 col=mix(base,ink,field*(.46+.36*halo));",
+        "  vec3 col=mix(base,ink,field*(.46+.36*halo+u_energy*.22+u_press*.12));",
+        "  col+=ink*pulseGlow*.85;",
         "  col+=mix(vec3(-.13),vec3(.16),u_dark)*filaments*(.25+.55*halo);",
+        "  col+=vec3(1.0)*twinkle*.14;",
         "  col+=mix(vec3(-.025),vec3(.025),u_dark)*halo;",
         "  col+=grain;",
         "  float vignette=smoothstep(1.75,.45,length(uv*vec2(.67,.88)));",
@@ -323,12 +418,125 @@
       var pointerUniform = gl.getUniformLocation(program, "u_pointer");
       var timeUniform = gl.getUniformLocation(program, "u_time");
       var darkUniform = gl.getUniformLocation(program, "u_dark");
+      var energyUniform = gl.getUniformLocation(program, "u_energy");
+      var pressUniform = gl.getUniformLocation(program, "u_press");
+      var pulsesUniform = gl.getUniformLocation(program, "u_pulses[0]");
       var darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
       var reduceQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+      var coarseQuery = window.matchMedia("(pointer: coarse)");
       var pointer = { x: .5, y: .5, tx: .5, ty: .5 };
       var start = performance.now();
       var active = true;
       var raf = 0;
+
+      /* --- magic state --- */
+      var energy = 0, energyTarget = 0, press = 0, pressTarget = 0;
+      var pulses = new Float32Array(16); /* 4 x (x, y, startSec, strength) */
+      var pulseIdx = 0;
+      var lastX = -1, lastY = -1, lastMoveAt = 0;
+      var tiltAsked = false, lastTouchAt = 0;
+      var glowEl = document.getElementById("glow");
+      var ripplesEl = document.getElementById("ripples");
+      var statusWord = document.getElementById("status-word");
+      var motionLabel = document.getElementById("motion-label");
+      var statusTimer = 0;
+      if (coarseQuery.matches && motionLabel) motionLabel.textContent = "Tap, drag & tilt the field";
+
+      function setStatus(word) {
+        if (!statusWord || statusWord.textContent === word) return;
+        statusWord.textContent = word;
+        clearTimeout(statusTimer);
+        if (word !== "continuous") {
+          statusTimer = setTimeout(function () { statusWord.textContent = "continuous"; }, 1900);
+        }
+      }
+
+      function addPulse(nx, ny, strength) {
+        var sec = (performance.now() - start) * .001;
+        pulses[pulseIdx * 4] = nx;
+        pulses[pulseIdx * 4 + 1] = ny;
+        pulses[pulseIdx * 4 + 2] = reduceQuery.matches ? -1 : sec;
+        pulses[pulseIdx * 4 + 3] = strength;
+        pulseIdx = (pulseIdx + 1) % 4;
+      }
+
+      function spawnRipple(x, y) {
+        if (reduceQuery.matches || !ripplesEl) return;
+        for (var i = 0; i < 2; i++) {
+          var r = document.createElement("span");
+          r.className = "ripple" + (i ? " r2" : "");
+          r.style.left = x + "px";
+          r.style.top = y + "px";
+          ripplesEl.appendChild(r);
+          (function (el) { setTimeout(function () { el.remove(); }, 1150); })(r);
+        }
+      }
+
+      /* --- sparkle layer (2D canvas) --- */
+      var sCanvas = document.getElementById("sparkles");
+      var sCtx = sCanvas ? sCanvas.getContext("2d") : null;
+      var sparks = [], ambient = [], sRaf = 0, sActive = true;
+      function sizeSparkles() {
+        if (!sCanvas) return;
+        var dpr = Math.min(window.devicePixelRatio || 1, 2);
+        sCanvas.width = Math.floor(window.innerWidth * dpr);
+        sCanvas.height = Math.floor(window.innerHeight * dpr);
+        if (sCtx) sCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ambient = [];
+        var n = Math.min(46, Math.floor(window.innerWidth / 16));
+        for (var i = 0; i < n; i++) {
+          ambient.push({ x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight,
+            r: .8 + Math.random() * 1.9, ph: Math.random() * 6.28, sp: .25 + Math.random() * .7,
+            dr: (Math.random() - .5) * .07 });
+        }
+      }
+      function star(x, y, r, alpha, color) {
+        sCtx.save();
+        sCtx.globalAlpha = alpha;
+        sCtx.fillStyle = color;
+        sCtx.beginPath();
+        sCtx.moveTo(x, y - r);
+        sCtx.quadraticCurveTo(x, y, x + r, y);
+        sCtx.quadraticCurveTo(x, y, x, y + r);
+        sCtx.quadraticCurveTo(x, y, x - r, y);
+        sCtx.quadraticCurveTo(x, y, x, y - r);
+        sCtx.fill();
+        sCtx.restore();
+      }
+      function burst(x, y, count) {
+        if (!sCtx || reduceQuery.matches) return;
+        var dark = darkQuery.matches;
+        var colors = dark ? ["#72e4c8", "#bdf24f", "#ffd166", "#ffffff"] : ["#087f70", "#7da82e", "#e04c29", "#0aa88f"];
+        for (var i = 0; i < count; i++) {
+          var ang = Math.random() * 6.283, vel = .4 + Math.random() * 2.6;
+          sparks.push({ x: x, y: y, vx: Math.cos(ang) * vel, vy: Math.sin(ang) * vel - .7,
+            life: 1, decay: .008 + Math.random() * .02, r: 2.5 + Math.random() * 6,
+            color: colors[i % colors.length], rot: Math.random() * 6.28 });
+          if (sparks.length > 170) sparks.shift();
+        }
+      }
+      function drawSparkles(now) {
+        if (!sCtx) return;
+        var w = window.innerWidth, h = window.innerHeight;
+        sCtx.clearRect(0, 0, w, h);
+        var t = now * .001;
+        var dark = darkQuery.matches;
+        var ambColor = dark ? "#aef2dd" : "#087f70";
+        var i, s;
+        for (i = 0; i < ambient.length; i++) {
+          s = ambient[i];
+          s.x += s.dr; if (s.x < -4) s.x = w + 4; if (s.x > w + 4) s.x = -4;
+          var tw = .5 + .5 * Math.sin(t * s.sp * 2 + s.ph);
+          star(s.x, s.y + Math.sin(t * s.sp + s.ph) * 6, s.r * (0.6 + tw * .7), .1 + tw * .3, ambColor);
+        }
+        for (i = sparks.length - 1; i >= 0; i--) {
+          s = sparks[i];
+          s.x += s.vx; s.y += s.vy; s.vy += .018; s.vx *= .985; s.life -= s.decay;
+          if (s.life <= 0) { sparks.splice(i, 1); continue; }
+          star(s.x, s.y, s.r * s.life + .6, Math.min(1, s.life * 1.4), s.color);
+        }
+        if (sActive && !reduceQuery.matches) sRaf = requestAnimationFrame(drawSparkles);
+      }
 
       function resize() {
         var mobile = window.innerWidth < 700;
@@ -344,12 +552,28 @@
 
       function draw(now) {
         resize();
-        pointer.x += (pointer.tx - pointer.x) * .045;
-        pointer.y += (pointer.ty - pointer.y) * .045;
+        var ease = press > .1 ? .11 : .055;
+        pointer.x += (pointer.tx - pointer.x) * ease;
+        pointer.y += (pointer.ty - pointer.y) * ease;
+        energyTarget *= .965;
+        energy += (energyTarget - energy) * .07;
+        press += (pressTarget - press) * .14;
         gl.uniform2f(resolution, canvas.width, canvas.height);
         gl.uniform2f(pointerUniform, pointer.x, pointer.y);
         gl.uniform1f(timeUniform, reduceQuery.matches ? 3.4 : (now - start) * .001);
         gl.uniform1f(darkUniform, darkQuery.matches ? 1 : 0);
+        gl.uniform1f(energyUniform, reduceQuery.matches ? 0 : energy);
+        gl.uniform1f(pressUniform, reduceQuery.matches ? 0 : press);
+        gl.uniform4fv(pulsesUniform, pulses);
+        /* parallax + glow follow the smoothed pointer */
+        var px = (pointer.x - .5) * 2, py = (pointer.y - .5) * 2;
+        document.body.style.setProperty("--px", px.toFixed(3));
+        document.body.style.setProperty("--py", py.toFixed(3));
+        document.body.style.setProperty("--energy", Math.min(1, energy + press * .6).toFixed(3));
+        if (glowEl) {
+          glowEl.style.left = (pointer.x * window.innerWidth) + "px";
+          glowEl.style.top = (pointer.y * window.innerHeight) + "px";
+        }
         gl.drawArrays(gl.TRIANGLES, 0, 3);
         if (active && !reduceQuery.matches) raf = requestAnimationFrame(draw);
       }
@@ -359,24 +583,97 @@
         if (active) raf = requestAnimationFrame(draw);
       }
 
+      function movePointer(x, y, isDrag) {
+        var nx = x / Math.max(1, window.innerWidth);
+        var ny = y / Math.max(1, window.innerHeight);
+        pointer.tx = nx;
+        pointer.ty = ny;
+        var now = performance.now();
+        if (lastX >= 0) {
+          var d = Math.hypot(x - lastX, y - lastY);
+          energyTarget = Math.min(1, energyTarget + d / 260);
+          if ((isDrag || coarseQuery.matches) && d > 14 && now - lastMoveAt > 46) {
+            lastMoveAt = now;
+            burst(x, y, 3);
+          }
+        }
+        lastX = x; lastY = y;
+      }
+
+      function askTiltOnce() {
+        if (tiltAsked) return;
+        tiltAsked = true;
+        try {
+          if (typeof DeviceOrientationEvent !== "undefined" &&
+              typeof DeviceOrientationEvent.requestPermission === "function") {
+            DeviceOrientationEvent.requestPermission().then(function (res) {
+              if (res === "granted") setStatus("tilt live");
+            }).catch(function () {});
+          }
+        } catch (e) {}
+      }
+
       window.addEventListener("pointermove", function (event) {
-        pointer.tx = event.clientX / Math.max(1, window.innerWidth);
-        pointer.ty = event.clientY / Math.max(1, window.innerHeight);
+        movePointer(event.clientX, event.clientY, pressTarget > 0);
+        if (pressTarget > 0) setStatus("bending");
       }, { passive: true });
 
       window.addEventListener("pointerdown", function (event) {
-        pointer.tx = event.clientX / Math.max(1, window.innerWidth);
-        pointer.ty = event.clientY / Math.max(1, window.innerHeight);
+        movePointer(event.clientX, event.clientY, false);
+        lastTouchAt = performance.now();
+        pressTarget = 1;
+        energyTarget = Math.min(1, energyTarget + .55);
+        document.body.classList.add("is-touching");
+        addPulse(pointer.tx, pointer.ty, 1);
+        spawnRipple(event.clientX, event.clientY);
+        burst(event.clientX, event.clientY, coarseQuery.matches ? 20 : 14);
+        setStatus("resonating");
+        askTiltOnce();
+        if (navigator.vibrate && coarseQuery.matches) { try { navigator.vibrate(8); } catch (e) {} }
+      }, { passive: true });
+
+      function endPress() {
+        pressTarget = 0;
+        document.body.classList.remove("is-touching");
+        lastX = -1; lastY = -1;
+      }
+      window.addEventListener("pointerup", endPress, { passive: true });
+      window.addEventListener("pointercancel", endPress, { passive: true });
+      window.addEventListener("blur", endPress);
+
+      /* tilt steers the field when the finger is off it */
+      window.addEventListener("deviceorientation", function (event) {
+        if (event.gamma === null || event.beta === null) return;
+        if (performance.now() - lastTouchAt < 1200 || pressTarget > 0) return;
+        var nx = .5 + event.gamma / 64;
+        var ny = .5 + (event.beta - 42) / 64;
+        pointer.tx = Math.min(.92, Math.max(.08, nx));
+        pointer.ty = Math.min(.92, Math.max(.08, ny));
+        energyTarget = Math.min(.55, energyTarget + .012);
       }, { passive: true });
 
       document.addEventListener("visibilitychange", function () {
         active = !document.hidden;
+        sActive = active;
         restart();
+        cancelAnimationFrame(sRaf);
+        if (sActive && !reduceQuery.matches) sRaf = requestAnimationFrame(drawSparkles);
+        else if (sCtx) drawSparkles(performance.now());
       });
-      window.addEventListener("resize", restart, { passive: true });
+      window.addEventListener("resize", function () { sizeSparkles(); restart(); }, { passive: true });
       darkQuery.addEventListener("change", restart);
-      reduceQuery.addEventListener("change", restart);
+      reduceQuery.addEventListener("change", function () {
+        restart();
+        cancelAnimationFrame(sRaf);
+        if (!reduceQuery.matches) sRaf = requestAnimationFrame(drawSparkles);
+        else drawSparkles(performance.now());
+      });
+      sizeSparkles();
       draw(start);
+      if (sCtx) {
+        if (reduceQuery.matches) drawSparkles(1200);
+        else sRaf = requestAnimationFrame(drawSparkles);
+      }
     })();
   </script>
 </body>
