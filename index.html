@@ -90,7 +90,10 @@
       letter-spacing: -0.045em;
       line-height: 1.02;
       text-wrap: balance;
-      text-shadow: 0 2px 30px rgba(0, 0, 0, 0.55);
+      text-shadow:
+        0 0 18px rgba(5, 6, 14, 0.80),
+        0 2px 34px rgba(5, 6, 14, 0.60),
+        0 0 64px rgba(5, 6, 14, 0.42);
     }
 
     h1 span {
@@ -105,7 +108,10 @@
       line-height: 1.55;
       letter-spacing: -0.011em;
       color: var(--muted);
-      text-shadow: 0 1px 16px rgba(0, 0, 0, 0.65);
+      text-shadow:
+        0 0 12px rgba(5, 6, 14, 0.88),
+        0 1px 24px rgba(5, 6, 14, 0.72),
+        0 0 48px rgba(5, 6, 14, 0.48);
     }
 
     @keyframes rise {
@@ -156,6 +162,7 @@
 
       var W = 0, H = 0, DPR = 1;
       var CX = 0, CY = 0, R = 300;         // spiral field centre + radius
+      var QX = 0, QY = 0, QRX = 0, QRY = 0; // quiet zone: feathered ellipse behind the text
       var SQUASH = 0.87;                    // gentle axial tilt, opened up a touch
       var spiral = [];                      // stars that form the galaxy
       var field = [];                       // distant background stars
@@ -172,6 +179,30 @@
       var INTRO_STAGGER = 700;              // ms of per-star delay spread
       var startTime = performance.now();
       var lastNow = startTime;
+
+      /* Quiet zone: brightness multiplier for a point — lowest at the
+         centre of the text block, feathering smoothly back to 1 (full
+         brightness) at and beyond the ellipse edge. No hard boundary. */
+      function quietFactor(x, y, minFactor) {
+        if (!QRX || !QRY) return 1;
+        var dx = (x - QX) / QRX;
+        var dy = (y - QY) / QRY;
+        var d = Math.sqrt(dx * dx + dy * dy);
+        if (d >= 1) return 1;
+        var s = d * d * (3 - 2 * d);       // smoothstep feather
+        return minFactor + (1 - minFactor) * s;
+      }
+
+      function updateQuietZone() {
+        var intro = document.querySelector('.intro');
+        if (!intro) return;
+        var r = intro.getBoundingClientRect();
+        if (!r.width || !r.height) return;
+        QX = r.left + r.width / 2;
+        QY = r.top + r.height / 2;
+        QRX = r.width / 2 + Math.min(120, W * 0.15);
+        QRY = r.height / 2 + Math.min(95, H * 0.12);
+      }
 
       function rand(min, max) { return min + Math.random() * (max - min); }
       function gauss() { return (Math.random() + Math.random() + Math.random() - 1.5) / 1.5; }
@@ -282,21 +313,24 @@
         canvas.height = Math.floor(H * DPR);
         ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
         buildField();
+        updateQuietZone();
         if (reduced) drawFrame(startTime + INTRO_LEN + INTRO_STAGGER + 1);
       }
 
       /* ---------- Core: dense glow + soft cross-flare ---------- */
       function drawCore(introE) {
         var coreR = R * 0.30 * (0.7 + 0.3 * introE);
+        // Soften the core glow where it sits behind the text block
+        var coreDim = quietFactor(CX, CY, 0.52);
         ctx.save();
         ctx.translate(CX, CY);
         ctx.scale(1, SQUASH);
         ctx.globalCompositeOperation = 'lighter';
 
         var glow = ctx.createRadialGradient(0, 0, 0, 0, 0, coreR);
-        glow.addColorStop(0, 'rgba(255,246,228,' + (0.85 * introE).toFixed(3) + ')');
-        glow.addColorStop(0.18, 'rgba(226,222,248,' + (0.42 * introE).toFixed(3) + ')');
-        glow.addColorStop(0.5, 'rgba(150,164,220,' + (0.13 * introE).toFixed(3) + ')');
+        glow.addColorStop(0, 'rgba(255,246,228,' + (0.85 * introE * coreDim).toFixed(3) + ')');
+        glow.addColorStop(0.18, 'rgba(226,222,248,' + (0.42 * introE * coreDim).toFixed(3) + ')');
+        glow.addColorStop(0.5, 'rgba(150,164,220,' + (0.13 * introE * coreDim).toFixed(3) + ')');
         glow.addColorStop(1, 'rgba(0,0,0,0)');
         ctx.fillStyle = glow;
         ctx.beginPath();
@@ -317,10 +351,10 @@
           ctx.fill();
           ctx.restore();
         }
-        flare(coreR * 1.45, coreR * 0.13, 0.16 * introE);
+        flare(coreR * 1.45, coreR * 0.13, 0.16 * introE * coreDim);
         ctx.save();
         ctx.rotate(Math.PI / 2);
-        flare(coreR * 1.05, coreR * 0.13, 0.11 * introE);
+        flare(coreR * 1.05, coreR * 0.13, 0.11 * introE * coreDim);
         ctx.restore();
         ctx.restore();
       }
@@ -359,7 +393,7 @@
           var fy = CY + Math.sin(fa) * f.rad * SQUASH;
           if (fx < -4 || fx > W + 4 || fy < -4 || fy > H + 4) continue;
           var ftw = 0.74 + 0.26 * Math.sin(elapsed * 0.001 * f.twSpeed + f.twPhase);
-          ctx.fillStyle = 'rgba(' + f.col + ',' + (f.base * ftw * introGlobal).toFixed(3) + ')';
+          ctx.fillStyle = 'rgba(' + f.col + ',' + (f.base * ftw * introGlobal * quietFactor(fx, fy, 0.52)).toFixed(3) + ')';
           ctx.beginPath();
           ctx.arc(fx, fy, f.r, 0, Math.PI * 2);
           ctx.fill();
@@ -387,7 +421,7 @@
           var y = CY + Math.sin(a) * rad * SQUASH + s.py;
           if (x < -4 || x > W + 4 || y < -4 || y > H + 4) continue;
           var tw = 0.76 + 0.24 * Math.sin(elapsed * 0.001 * s.twSpeed + s.twPhase);
-          var alpha = s.base * tw * (0.15 + 0.85 * e);
+          var alpha = s.base * tw * (0.15 + 0.85 * e) * quietFactor(x, y, 0.44);
           ctx.fillStyle = 'rgba(' + s.col + ',' + alpha.toFixed(3) + ')';
           ctx.beginPath();
           ctx.arc(x, y, s.r, 0, Math.PI * 2);
@@ -476,6 +510,9 @@
       });
 
       resize();
+      // Re-measure once the intro rise has settled so the quiet zone
+      // centres on the text block's resting position.
+      setTimeout(updateQuietZone, 900);
       if (!reduced) requestAnimationFrame(loop);
     })();
   </script>
