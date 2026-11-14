@@ -10,8 +10,8 @@
   <meta name="robots" content="noindex" />
   <title>GlassTube for Mac</title>
   <meta name="description" content="YouTube and YouTube Music, native on your Mac. Free beta for macOS 26 and later." />
-  <link rel="icon" type="image/png" href="favicon.png" />
-  <link rel="apple-touch-icon" href="icon.png" />
+  <link rel="icon" type="image/png" href="/glasstube/favicon.png" />
+  <link rel="apple-touch-icon" href="/glasstube/icon.png" />
   <style>
     :root {
       --bg: #fbf7f8;
@@ -200,10 +200,10 @@
   <div class="glow" aria-hidden="true"></div>
   <main>
     <section>
-      <img class="icon" src="icon.png" width="140" height="140" alt="GlassTube app icon" />
+      <img class="icon" src="/glasstube/icon.png" width="140" height="140" alt="GlassTube app icon" />
       <h1>GlassTube</h1>
       <p class="tagline">YouTube and YouTube Music, native on your Mac.</p>
-      <a class="download" href="GlassTube.dmg" download>
+      <a class="download" href="/glasstube/GlassTube.dmg" download>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M12 4v11" /><path d="m7 10 5 5 5-5" /><path d="M5 20h14" />
         </svg>
@@ -229,13 +229,13 @@
 
     <footer>
       Feedback: Help ▸ Send Feedback in the app.<br />
-      Unofficial · not affiliated with YouTube or Google · <a href="/">elopez.dev</a>
+      Unofficial · not affiliated with YouTube or Google · <a href="/" id="home">elopez.dev</a>
     </footer>
   </main>
 
   <script>
     // The release script writes version.json next to the DMG.
-    fetch("version.json", { cache: "no-cache" })
+    fetch("/glasstube/version.json", { cache: "no-cache" })
       .then((r) => (r.ok ? r.json() : null))
       .then((v) => {
         if (!v || !v.version) return;
@@ -243,6 +243,8 @@
         document.getElementById("version").textContent = `v${v.version}${size}`;
       })
       .catch(() => {});
+    // The same page is served by elopez.dev and ezrabuilds.com: name the home it's on.
+    document.getElementById("home").textContent = location.hostname.replace(/^www\./, "") || "home";
   </script>
   <script data-goatcounter="https://elopez.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
